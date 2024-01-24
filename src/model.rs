@@ -50,7 +50,9 @@ impl Model {
         let mut t = self.data.data.get_mut(self.selected_thread as usize).unwrap();
         while self.data.selected_comment as usize >= t.comments.len() {
             t.comment_page += 1;
-            // TODO add more comments
+            let t_over = self.overview.get(self.selected_thread as usize).unwrap();
+            let mut new_comments = get_thread(t_over, t.comment_page).unwrap();
+            t.comments.append(&mut new_comments.comments);
         }
 
         return Ok(());
@@ -72,7 +74,9 @@ impl Model {
         let mut t = self.data.data.get_mut(self.selected_thread as usize).unwrap();
         while self.data.selected_comment as usize >= t.comments.len() {
             t.comment_page += 1;
-            // TODO add more comments
+            let t_over = self.overview.get(self.selected_thread as usize).unwrap();
+            let mut new_comments = get_thread(t_over, t.comment_page).unwrap();
+            t.comments.append(&mut new_comments.comments);
         }
         return Ok(());
     }
