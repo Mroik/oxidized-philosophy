@@ -41,7 +41,8 @@ impl Model {
         self.viewer_scroll = 0;
         self.data.selected_comment = 0;
         if self.selected_thread as usize >= self.data.data.len() {
-            let mut t = get_thread(self.overview.get(self.selected_thread as usize).unwrap()).unwrap();
+            let t_over = self.overview.get(self.selected_thread as usize).unwrap();
+            let mut t = get_thread(t_over, 1).unwrap();
             t.comment_page = 1;
             self.data.data.push(t);
         }
@@ -101,7 +102,8 @@ impl Model {
         let mut m = Model { ..Default::default() };
         m.overview = get_threads(1).unwrap();
         m.overview_page = 1;
-        m.data.data.push(get_thread(m.overview.get(m.selected_thread as usize).unwrap()).unwrap());
+        let t = get_thread(m.overview.get(m.selected_thread as usize).unwrap(), 1).unwrap();
+        m.data.data.push(t);
         return m;
     }
 }

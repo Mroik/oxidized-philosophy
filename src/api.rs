@@ -52,7 +52,9 @@ pub fn get_threads(page: u16) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
     return Ok(result);
 }
 
-pub fn get_thread(thread: &ThreadOverview) -> Result<ThreadData, Box<dyn Error>> {
+pub fn get_thread(thread: &ThreadOverview, page: u16) -> Result<ThreadData, Box<dyn Error>> {
+    let mut url = thread.url.clone();
+    url.push_str(format!("/p{}", page).as_str());
     let body = reqwest::blocking::get(&thread.url)?.text()?;
     let mut result = ThreadData {
         title: thread.title.clone(),
