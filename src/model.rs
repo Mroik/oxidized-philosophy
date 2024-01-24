@@ -2,21 +2,24 @@ use std::error::Error;
 
 use crate::{overview::ThreadOverview, thread::ThreadData, api::{get_threads, get_thread}};
 
-struct Model {
-    overview: Vec<ThreadOverview>,
-    selected: u16,
-    page: u16,
-    data: ThreadsModel,
-    viewer_scroll: u16,
+#[derive(Default)]
+pub struct Model {
+    pub overview: Vec<ThreadOverview>,
+    pub selected: u16,
+    pub page: u16,
+    pub data: ThreadsModel,
+    pub viewer_scroll: u16,
 }
 
-struct ThreadsModel {
-    data: Vec<ThreadData>,
-    selected: u16,
-    page: u16,
+#[derive(Default)]
+pub struct ThreadsModel {
+    pub data: Vec<ThreadData>,
+    pub selected: u16,
+    pub page: u16,
 }
 
-enum Action {
+#[derive(PartialEq)]
+pub enum Action {
     NextThread,
     PrevThread,
     NextComment,
@@ -24,6 +27,7 @@ enum Action {
     ScrollDown,
     ScrollUp,
     Quit,
+    Nothing,
 }
 
 impl Model {
@@ -89,9 +93,18 @@ impl Model {
         }
         return Ok(());
     }
+
+    pub(crate) fn new() -> Model {
+        let mut m = Model { ..Default::default() };
+        m.overview = get_threads(1).unwrap();
+        m.page = 1;
+        m.data.page = 1;
+        m.data.data.push(get_thread(m.overview.get(m.selected as usize).unwrap()).unwrap());
+        return m;
+    }
 }
 
-fn update(model: &mut Model, action: Action) -> Result<(), Box<dyn Error>> {
+pub fn update(model: &mut Model, action: Action) -> Result<(), Box<dyn Error>> {
     match action {
         Action::NextThread => model.next_thread(),
         Action::PrevThread => model.prev_thread(),
@@ -100,5 +113,6 @@ fn update(model: &mut Model, action: Action) -> Result<(), Box<dyn Error>> {
         Action::ScrollDown => model.scroll_down(),
         Action::ScrollUp => model.scroll_up(),
         Action::Quit => panic!(),
+        Action::Nothing => Ok(()),
     }
 }
