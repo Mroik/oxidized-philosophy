@@ -1,6 +1,10 @@
 use std::error::Error;
 
-use crate::{overview::ThreadOverview, thread::ThreadData, api::{get_threads, get_thread}};
+use crate::{
+    api::{get_thread, get_threads},
+    overview::ThreadOverview,
+    thread::ThreadData,
+};
 
 #[derive(Default)]
 pub struct Model {
@@ -42,16 +46,20 @@ impl Model {
         self.data.selected_comment = 0;
         if self.selected_thread as usize >= self.data.data.len() {
             let t_over = self.overview.get(self.selected_thread as usize).unwrap();
-            let mut t = get_thread(t_over, 1).unwrap();
+            let mut t = get_thread(t_over, 1)?;
             t.comment_page = 1;
             self.data.data.push(t);
         }
 
-        let mut t = self.data.data.get_mut(self.selected_thread as usize).unwrap();
+        let mut t = self
+            .data
+            .data
+            .get_mut(self.selected_thread as usize)
+            .unwrap();
         while self.data.selected_comment as usize >= t.comments.len() {
             t.comment_page += 1;
             let t_over = self.overview.get(self.selected_thread as usize).unwrap();
-            let mut new_comments = get_thread(t_over, t.comment_page).unwrap();
+            let mut new_comments = get_thread(t_over, t.comment_page)?;
             t.comments.append(&mut new_comments.comments);
         }
 
@@ -71,11 +79,15 @@ impl Model {
     fn next_comment(&mut self) -> Result<(), Box<dyn Error>> {
         self.data.selected_comment += 1;
         self.viewer_scroll = 0;
-        let mut t = self.data.data.get_mut(self.selected_thread as usize).unwrap();
+        let mut t = self
+            .data
+            .data
+            .get_mut(self.selected_thread as usize)
+            .unwrap();
         while self.data.selected_comment as usize >= t.comments.len() {
             t.comment_page += 1;
             let t_over = self.overview.get(self.selected_thread as usize).unwrap();
-            let mut new_comments = get_thread(t_over, t.comment_page).unwrap();
+            let mut new_comments = get_thread(t_over, t.comment_page)?;
             t.comments.append(&mut new_comments.comments);
         }
         return Ok(());
@@ -103,7 +115,9 @@ impl Model {
     }
 
     pub(crate) fn new() -> Model {
-        let mut m = Model { ..Default::default() };
+        let mut m = Model {
+            ..Default::default()
+        };
         m.overview = get_threads(1).unwrap();
         m.overview_page = 1;
         let t = get_thread(m.overview.get(m.selected_thread as usize).unwrap(), 1).unwrap();

@@ -1,14 +1,18 @@
-use std::{io::stdout, error::Error};
+use std::{error::Error, io::stdout};
 
-use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode}, ExecutableCommand, event::{Event, self, KeyEventKind, KeyCode}};
-use model::{Model, Action, update};
-use ratatui::{Terminal, backend::CrosstermBackend};
+use crossterm::{
+    event::{self, Event, KeyCode, KeyEventKind},
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    ExecutableCommand,
+};
+use model::{update, Action, Model};
+use ratatui::{backend::CrosstermBackend, Terminal};
 use ui::view;
 
 mod api;
+mod model;
 mod overview;
 mod thread;
-mod model;
 mod ui;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -23,7 +27,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         terminal.draw(|frame| {
             view(&model, frame);
         })?;
-        if let Event::Key(key) = event::read().unwrap() {
+        if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
                 let m = match key.code {
                     KeyCode::Up => Action::PrevThread,
@@ -36,12 +40,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                     _ => Action::Nothing,
                 };
                 if m == Action::Quit {
-                    break
+                    break;
                 }
 
                 update(&mut model, m)?;
             }
-         }
+        }
     }
 
     stdout().execute(LeaveAlternateScreen)?;

@@ -1,4 +1,4 @@
-use serde::{Deserialize, de::Visitor};
+use serde::{de::Visitor, Deserialize};
 
 #[derive(Debug)]
 pub struct ThreadOverview {
@@ -42,7 +42,10 @@ pub struct XMLDiscussion {
 }
 
 impl<'de> Deserialize<'de> for XMLDiscussion {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: serde::Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
         deserializer.deserialize_map(DiscussionVisitor {})
     }
 }
@@ -55,8 +58,13 @@ impl<'de> Visitor<'de> for DiscussionVisitor {
         formatter.write_str("Could not deserialize discussion")
     }
 
-    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error> where A: serde::de::MapAccess<'de>, {
-        let mut data = XMLDiscussion { ..Default::default() };
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        let mut data = XMLDiscussion {
+            ..Default::default()
+        };
         let mut counter = 0;
 
         while let Some(key) = map.next_key::<Option<String>>()? {
@@ -65,7 +73,7 @@ impl<'de> Visitor<'de> for DiscussionVisitor {
                 "div" if counter == 0 => {
                     data.replies = map.next_value::<XMLReplies>()?;
                     counter += 1;
-                },
+                }
                 "div" => data.title = map.next_value::<XMLTitleWrapper>()?,
                 _ => (),
             }

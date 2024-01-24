@@ -1,4 +1,4 @@
-use serde::{Deserialize, de::Visitor};
+use serde::{de::Visitor, Deserialize};
 
 #[derive(Default, Debug)]
 pub struct ThreadData {
@@ -34,7 +34,10 @@ pub struct XMLComment {
 }
 
 impl<'de> Deserialize<'de> for XMLComment {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: serde::Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
         deserializer.deserialize_map(CommentVisitor {})
     }
 }
@@ -47,8 +50,13 @@ impl<'de> Visitor<'de> for CommentVisitor {
         formatter.write_str("Couldn't deserialize comment")
     }
 
-    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error> where A: serde::de::MapAccess<'de>, {
-        let mut data = XMLComment { ..Default::default() };
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        let mut data = XMLComment {
+            ..Default::default()
+        };
         let mut counter = 0;
 
         while let Some(key) = map.next_key::<Option<String>>()? {
@@ -57,15 +65,15 @@ impl<'de> Visitor<'de> for CommentVisitor {
                 "div" if counter == 0 => {
                     let _ = map.next_value::<()>();
                     counter += 1;
-                },
+                }
                 "div" if counter == 1 => {
                     data.text = map.next_value::<XMLMessage>()?;
                     counter += 1;
-                },
+                }
                 "div" if counter == 2 => data.date = map.next_value::<XMLMeta>()?,
                 _ => {
                     let _ = map.next_value::<()>();
-                },
+                }
             }
         }
         return Ok(data);
@@ -78,7 +86,10 @@ pub struct XMLAuthor {
 }
 
 impl<'de> Deserialize<'de> for XMLAuthor {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: serde::Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
         deserializer.deserialize_map(AuthorVisitor {})
     }
 }
@@ -91,8 +102,13 @@ impl<'de> Visitor<'de> for AuthorVisitor {
         formatter.write_str("Couldn't deserialize author")
     }
 
-    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error> where A: serde::de::MapAccess<'de>, {
-        let mut data = XMLAuthor { ..Default::default() };
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        let mut data = XMLAuthor {
+            ..Default::default()
+        };
         let mut found = false;
 
         while let Some(key) = map.next_key::<Option<String>>()? {
@@ -100,10 +116,10 @@ impl<'de> Visitor<'de> for AuthorVisitor {
                 "a" if !found => {
                     data.name = map.next_value::<XMLAuthorInner>()?;
                     found = true;
-                },
+                }
                 _ => {
                     let _ = map.next_value::<()>();
-                },
+                }
             }
         }
         return Ok(data);
@@ -162,7 +178,10 @@ pub struct XMLMeta {
 }
 
 impl<'de> Deserialize<'de> for XMLMeta {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: serde::Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
         deserializer.deserialize_map(MetaVisitor {})
     }
 }
@@ -175,8 +194,13 @@ impl<'de> Visitor<'de> for MetaVisitor {
         formatter.write_str("Couldn't deserialize meta")
     }
 
-    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error> where A: serde::de::MapAccess<'de>, {
-        let mut data = XMLMeta { ..Default::default() };
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        let mut data = XMLMeta {
+            ..Default::default()
+        };
         let mut counter = 0;
 
         while let Some(key) = map.next_key::<Option<String>>()? {
@@ -184,14 +208,14 @@ impl<'de> Visitor<'de> for MetaVisitor {
                 "span" if counter == 0 => {
                     let _ = map.next_value::<()>();
                     counter += 1;
-                },
+                }
                 "span" if counter == 1 => {
                     data.value = map.next_value::<XMLDateWrapper>()?;
                     counter += 1;
-                },
+                }
                 _ => {
                     let _ = map.next_value::<()>();
-                },
+                }
             }
         }
         return Ok(data);

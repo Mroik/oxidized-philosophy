@@ -1,8 +1,11 @@
 use std::error::Error;
 
-use quick_xml::{Reader, events::Event, de::from_str};
+use quick_xml::{de::from_str, events::Event, Reader};
 
-use crate::{overview::{ThreadOverview, XMLDiscussion}, thread::{ThreadData, XMLComment, ThreadComment}};
+use crate::{
+    overview::{ThreadOverview, XMLDiscussion},
+    thread::{ThreadComment, ThreadData, XMLComment},
+};
 
 pub fn get_threads(page: u16) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
     let url = format!("https://thephilosophyforum.com/discussions/p{}", page);
@@ -17,14 +20,11 @@ pub fn get_threads(page: u16) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
             Err(e) => return Err(Box::new(e)),
             Ok(Event::Eof) => break,
             Ok(Event::Start(tag)) => {
-                match tag
-                    .attributes()
-                    .map(|a| a.unwrap().value)
-                    .find(|att| {
-                        let blob = att.as_ref();
-                        let attribute = std::str::from_utf8(blob).unwrap();
-                        return attribute == "Item";
-                    }) {
+                match tag.attributes().map(|a| a.unwrap().value).find(|att| {
+                    let blob = att.as_ref();
+                    let attribute = std::str::from_utf8(blob).unwrap();
+                    return attribute == "Item";
+                }) {
                     None => (),
                     Some(_) => {
                         let vv = reader.read_text(tag.to_end().name())?;
@@ -43,7 +43,7 @@ pub fn get_threads(page: u16) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
                             author: discussion.author.name,
                             replies: discussion.replies.replies,
                         });
-                    },
+                    }
                 }
             }
             _ => (),
@@ -68,14 +68,11 @@ pub fn get_thread(thread: &ThreadOverview, page: u16) -> Result<ThreadData, Box<
             Err(e) => return Err(Box::new(e)),
             Ok(Event::Eof) => break,
             Ok(Event::Start(tag)) => {
-                match tag
-                    .attributes()
-                    .map(|a| a.unwrap().value)
-                    .find(|att| {
-                        let blob = att.as_ref();
-                        let attribute = std::str::from_utf8(blob).unwrap();
-                        return attribute == "Comment";
-                    }) {
+                match tag.attributes().map(|a| a.unwrap().value).find(|att| {
+                    let blob = att.as_ref();
+                    let attribute = std::str::from_utf8(blob).unwrap();
+                    return attribute == "Comment";
+                }) {
                     None => (),
                     Some(_) => {
                         let t_data = reader.read_text(tag.to_end().name())?;
@@ -84,7 +81,7 @@ pub fn get_thread(thread: &ThreadOverview, page: u16) -> Result<ThreadData, Box<
                         comment_text.push_str(t_data.as_ref());
                         comment_text.push_str("</html");
 
-                        let comment: XMLComment = from_str(&comment_text).unwrap();
+                        let comment: XMLComment = from_str(&comment_text)?;
                         let ris = ThreadComment {
                             author: comment.author.name.value,
                             text: comment.text.text,
@@ -93,7 +90,7 @@ pub fn get_thread(thread: &ThreadOverview, page: u16) -> Result<ThreadData, Box<
                         result.comments.push(ris);
                     }
                 }
-            },
+            }
             _ => (),
         }
     }
