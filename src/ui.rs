@@ -1,6 +1,6 @@
-use ratatui::{Frame, layout::{Layout, Direction, Constraint, Rect}, widgets::{List, Block, Borders, ListState}, style::{Style, Color}};
+use ratatui::{Frame, layout::{Layout, Direction, Constraint, Rect, Alignment}, widgets::{List, Block, Borders, ListState, Paragraph, Wrap}, style::{Style, Color, Stylize}, text::Line};
 
-use crate::model::Model;
+use crate::{model::Model, thread::ThreadComment};
 
 fn generate_layout(frame: &Frame) -> (Rect, Rect, Rect) {
     let root = Layout::default()
@@ -40,7 +40,7 @@ pub fn view(model: &Model, frame: &mut Frame) {
     frame.render_stateful_widget(threads_list, overview, &mut state);
 
     let thread = model.data.data.get(model.selected_thread as usize).unwrap();
-    let comment_list = List::new(thread.comments.iter().map(|item| item.author.clone()))
+    let comment_list = List::new(thread.comments.iter().map(format_comment_list_row))
         .block(
             Block::default()
             .title("Comments")
@@ -56,5 +56,23 @@ pub fn view(model: &Model, frame: &mut Frame) {
     state.select(Some(model.data.selected_comment.into()));
     frame.render_stateful_widget(comment_list, comments, &mut state);
 
-    // TODO
+    let comment = thread.comments.get(model.data.selected_comment as usize).unwrap();
+    let text = Line::from(comment.get_text());
+    let parag = Paragraph::new(text)
+        .block(Block::new()
+               .title(thread.title.clone())
+               .borders(Borders::ALL))
+        .style(Style::new()
+               .white())
+        .alignment(Alignment::Left)
+        .wrap(Wrap { trim: true })
+        .scroll((model.viewer_scroll, 0));
+    frame.render_widget(parag, viewer);
+}
+
+fn format_comment_list_row(item: &ThreadComment) -> String {
+    let mut ris = item.author.clone();
+    ris.push_str("                                       ");
+    ris.push_str(item.date.as_str());
+    return ris;
 }

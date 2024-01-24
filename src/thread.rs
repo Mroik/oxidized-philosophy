@@ -14,6 +14,18 @@ pub struct ThreadComment {
     pub date: String,
 }
 
+impl ThreadComment {
+    pub fn get_text(&self) -> String {
+        self.text
+            .iter()
+            .map(|c| c.to_string())
+            .fold(String::new(), |mut acc, x| {
+                acc.push_str(x.as_str());
+                acc
+            })
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct XMLComment {
     pub author: XMLAuthor,
@@ -134,6 +146,14 @@ pub enum Choice {
     B,
     #[serde(rename = "$text")]
     Other(String),
+}
+impl Choice {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Other(t) => t.clone(),
+            _ => String::new(),
+        }
+    }
 }
 
 #[derive(Default, Debug)]
