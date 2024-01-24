@@ -1,6 +1,7 @@
 mod api;
 mod overview;
 mod thread;
+mod model;
 
 fn main() {
     let a = api::get_threads(1).unwrap();
