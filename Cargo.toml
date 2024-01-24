@@ -1,5 +1,5 @@
 [package]
-name = "phil"
+name = "oxidized-philosophy"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,4 +11,3 @@ quick-xml = { version = "0.31.0", features = ["serialize"] }
 ratatui = "0.25.0"
 reqwest = { version = "0.11.23", features = ["blocking"] }
 serde = { version = "1.0.195", features = ["derive"] }
-tokio = { version = "1.35.1", features = ["full"] }
