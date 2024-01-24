@@ -601,6 +601,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "oxidized-philosophy"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
+ "quick-xml",
+ "ratatui",
+ "reqwest",
+ "serde",
+]
+
+[[package]]
 name = "parking_lot"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -634,17 +645,6 @@ name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
-
-[[package]]
-name = "phil"
-version = "0.1.0"
-dependencies = [
- "crossterm",
- "quick-xml",
- "ratatui",
- "reqwest",
- "serde",
-]
 
 [[package]]
 name = "pin-project-lite"
