@@ -1,4 +1,4 @@
-use ratatui::{Frame, layout::{Layout, Direction, Constraint, Rect}};
+use ratatui::{Frame, layout::{Layout, Direction, Constraint, Rect}, widgets::{List, Block, Borders, ListState}, style::{Style, Color}};
 
 use crate::model::Model;
 
@@ -22,5 +22,22 @@ fn generate_layout(frame: &Frame) -> (Rect, Rect, Rect) {
 
 pub fn view(model: &Model, frame: &mut Frame) {
     let (overview, comments, viewer) = generate_layout(frame);
+
+    let list = List::new(model.overview.iter().map(|item| item.title.clone()))
+        .block(
+            Block::default()
+            .title("Overview")
+            .borders(Borders::ALL))
+        .style(
+            Style::default()
+            .fg(Color::White))
+        .highlight_style(
+            Style::default()
+            .bg(Color::LightBlue))
+        .highlight_symbol(">>");
+    let mut state = ListState::default();
+    state.select(Some(model.selected.into()));
+
+    frame.render_stateful_widget(list, overview, &mut state);
     // TODO
 }
