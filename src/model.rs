@@ -5,8 +5,8 @@ use crate::{overview::ThreadOverview, thread::ThreadData, api::{get_threads, get
 #[derive(Default)]
 pub struct Model {
     pub overview: Vec<ThreadOverview>,
-    pub selected: u16,
-    pub page: u16,
+    pub selected_thread: u16,
+    pub overview_page: u16,
     pub data: ThreadsModel,
     pub viewer_scroll: u16,
 }
@@ -14,8 +14,7 @@ pub struct Model {
 #[derive(Default)]
 pub struct ThreadsModel {
     pub data: Vec<ThreadData>,
-    pub selected: u16,
-    pub page: u16,
+    pub selected_comment: u16,
 }
 
 #[derive(PartialEq)]
@@ -32,52 +31,56 @@ pub enum Action {
 
 impl Model {
     fn next_thread(&mut self) -> Result<(), Box<dyn Error>> {
-        self.selected += 1;
-        while self.selected as usize >= self.overview.len() {
-            self.page += 1;
-            let mut new_overviews = get_threads(self.page)?;
+        self.selected_thread += 1;
+        while self.selected_thread as usize >= self.overview.len() {
+            self.overview_page += 1;
+            let mut new_overviews = get_threads(self.overview_page)?;
             self.overview.append(&mut new_overviews);
         }
 
         self.viewer_scroll = 0;
-        self.data.selected = 0;
-        while self.data.selected as usize >= self.data.data.len() {
-            self.data.page += 1;
-            let t = self.overview.get(self.selected as usize).unwrap();
-            let new_thread = get_thread(t)?;
-            self.data.data.push(new_thread);
+        self.data.selected_comment = 0;
+        if self.selected_thread as usize >= self.data.data.len() {
+            let mut t = get_thread(self.overview.get(self.selected_thread as usize).unwrap()).unwrap();
+            t.comment_page = 1;
+            self.data.data.push(t);
+        }
+
+        let mut t = self.data.data.get_mut(self.selected_thread as usize).unwrap();
+        while self.data.selected_comment as usize >= t.comments.len() {
+            t.comment_page += 1;
+            // TODO add more comments
         }
 
         return Ok(());
     }
 
     fn prev_thread(&mut self) -> Result<(), Box<dyn Error>> {
-        if self.selected == 0 {
+        if self.selected_thread == 0 {
             return Ok(());
         }
-        self.selected -= 1;
+        self.selected_thread -= 1;
         self.viewer_scroll = 0;
-        self.data.selected = 0;
+        self.data.selected_comment = 0;
         return Ok(());
     }
 
     fn next_comment(&mut self) -> Result<(), Box<dyn Error>> {
-        self.data.selected += 1;
+        self.data.selected_comment += 1;
         self.viewer_scroll = 0;
-        while self.data.selected as usize >= self.data.data.len() {
-            self.data.page += 1;
-            let t = self.overview.get(self.selected as usize).unwrap();
-            let new_thread = get_thread(t)?;
-            self.data.data.push(new_thread);
+        let mut t = self.data.data.get_mut(self.selected_thread as usize).unwrap();
+        while self.data.selected_comment as usize >= t.comments.len() {
+            t.comment_page += 1;
+            // TODO add more comments
         }
         return Ok(());
     }
 
     fn prev_comment(&mut self) -> Result<(), Box<dyn Error>> {
-        if self.data.selected == 0 {
+        if self.data.selected_comment == 0 {
             return Ok(());
         }
-        self.data.selected -= 1;
+        self.data.selected_comment -= 1;
         self.viewer_scroll = 0;
         return Ok(());
     }
@@ -97,9 +100,8 @@ impl Model {
     pub(crate) fn new() -> Model {
         let mut m = Model { ..Default::default() };
         m.overview = get_threads(1).unwrap();
-        m.page = 1;
-        m.data.page = 1;
-        m.data.data.push(get_thread(m.overview.get(m.selected as usize).unwrap()).unwrap());
+        m.overview_page = 1;
+        m.data.data.push(get_thread(m.overview.get(m.selected_thread as usize).unwrap()).unwrap());
         return m;
     }
 }

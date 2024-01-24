@@ -4,6 +4,7 @@ use serde::{Deserialize, de::Visitor};
 pub struct ThreadData {
     pub title: String,
     pub comments: Vec<ThreadComment>,
+    pub comment_page: u16,
 }
 
 #[derive(Debug)]
@@ -120,6 +121,7 @@ pub struct XMLMessage {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Choice {
+    Iframe,
     Ul,
     Img,
     U,

@@ -36,7 +36,7 @@ pub fn view(model: &Model, frame: &mut Frame) {
             .bg(Color::LightBlue))
         .highlight_symbol(">>");
     let mut state = ListState::default();
-    state.select(Some(model.selected.into()));
+    state.select(Some(model.selected_thread.into()));
 
     frame.render_stateful_widget(list, overview, &mut state);
     // TODO
