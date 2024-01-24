@@ -134,13 +134,6 @@ pub struct XMLAuthorInner {
 
 #[derive(Deserialize, Default, Debug)]
 pub struct XMLMessage {
-    //#[serde(rename = "$value")]
-    //pub text: Vec<String>,
-    //#[serde(rename = "blockquote")]
-    //pub quotes: Vec<()>,
-    //br: Vec<()>,
-    //i: Vec<()>,
-    //b: Vec<()>,
     #[serde(rename = "$value")]
     pub text: Vec<Choice>,
 }

@@ -6,7 +6,10 @@ use ratatui::{
     Frame,
 };
 
-use crate::{model::Model, thread::ThreadComment};
+use crate::{
+    model::Model,
+    thread::{ThreadComment, ThreadData},
+};
 
 fn generate_layout(frame: &Frame) -> (Rect, Rect, Rect) {
     let root = Layout::default()
@@ -22,26 +25,13 @@ fn generate_layout(frame: &Frame) -> (Rect, Rect, Rect) {
 
 pub fn view(model: &Model, frame: &mut Frame) {
     let (overview, comments, viewer) = generate_layout(frame);
-
-    let threads_list = List::new(model.overview.iter().map(|item| item.title.clone()))
-        .block(Block::default().title("Overview").borders(Borders::ALL))
-        .style(Style::default().fg(Color::White))
-        .highlight_style(Style::default().bg(Color::LightBlue))
-        .highlight_symbol(">>");
-    let mut state = ListState::default();
-    state.select(Some(model.selected_thread.into()));
-    frame.render_stateful_widget(threads_list, overview, &mut state);
-
+    render_overview(model, frame, overview);
     let thread = model.data.data.get(model.selected_thread as usize).unwrap();
-    let comment_list = List::new(thread.comments.iter().map(format_comment_list_row))
-        .block(Block::default().title("Comments").borders(Borders::ALL))
-        .style(Style::default().fg(Color::White))
-        .highlight_style(Style::default().bg(Color::LightBlue))
-        .highlight_symbol(">>");
-    let mut state = ListState::default();
-    state.select(Some(model.data.selected_comment.into()));
-    frame.render_stateful_widget(comment_list, comments, &mut state);
+    render_comment_list(thread, model, frame, comments);
+    render_viwer(thread, model, frame, viewer);
+}
 
+fn render_viwer(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rect) {
     let comment = thread
         .comments
         .get(model.data.selected_comment as usize)
@@ -57,7 +47,29 @@ pub fn view(model: &Model, frame: &mut Frame) {
         .alignment(Alignment::Left)
         .wrap(Wrap { trim: true })
         .scroll((model.viewer_scroll, 0));
-    frame.render_widget(parag, viewer);
+    frame.render_widget(parag, area);
+}
+
+fn render_comment_list(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rect) {
+    let comment_list = List::new(thread.comments.iter().map(format_comment_list_row))
+        .block(Block::default().title("Comments").borders(Borders::ALL))
+        .style(Style::default().fg(Color::White))
+        .highlight_style(Style::default().bg(Color::LightBlue))
+        .highlight_symbol(">>");
+    let mut state = ListState::default();
+    state.select(Some(model.data.selected_comment.into()));
+    frame.render_stateful_widget(comment_list, area, &mut state);
+}
+
+fn render_overview(model: &Model, frame: &mut Frame, area: Rect) {
+    let threads_list = List::new(model.overview.iter().map(|item| item.title.clone()))
+        .block(Block::default().title("Overview").borders(Borders::ALL))
+        .style(Style::default().fg(Color::White))
+        .highlight_style(Style::default().bg(Color::LightBlue))
+        .highlight_symbol(">>");
+    let mut state = ListState::default();
+    state.select(Some(model.selected_thread.into()));
+    frame.render_stateful_widget(threads_list, area, &mut state);
 }
 
 fn format_comment_list_row(item: &ThreadComment) -> String {
