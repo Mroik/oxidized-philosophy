@@ -23,7 +23,7 @@ pub fn get_threads(page: u16) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
                 match tag.attributes().map(|a| a.unwrap().value).find(|att| {
                     let blob = att.as_ref();
                     let attribute = std::str::from_utf8(blob).unwrap();
-                    return attribute == "Item";
+                    attribute == "Item"
                 }) {
                     None => (),
                     Some(_) => {
@@ -71,7 +71,7 @@ pub fn get_thread(thread: &ThreadOverview, page: u16) -> Result<ThreadData, Box<
                 match tag.attributes().map(|a| a.unwrap().value).find(|att| {
                     let blob = att.as_ref();
                     let attribute = std::str::from_utf8(blob).unwrap();
-                    return attribute == "Comment";
+                    attribute == "Comment"
                 }) {
                     None => (),
                     Some(_) => {
