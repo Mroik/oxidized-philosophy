@@ -1,5 +1,7 @@
 use std::error::Error;
 
+use reqwest::blocking::Client;
+
 use crate::{
     api::{get_thread, get_threads},
     overview::ThreadOverview,
@@ -14,6 +16,7 @@ pub struct Model {
     pub data: ThreadsModel,
     pub viewer_scroll: u16,
     pub multiplier: Vec<u32>,
+    pub http_client: Client,
 }
 
 #[derive(Default)]
@@ -40,7 +43,7 @@ impl Model {
         self.selected_thread += 1;
         while self.selected_thread as usize >= self.overview.len() {
             self.overview_page += 1;
-            let mut new_overviews = get_threads(self.overview_page)?;
+            let mut new_overviews = get_threads(&self.http_client, self.overview_page)?;
             self.overview.append(&mut new_overviews);
         }
 
@@ -48,7 +51,7 @@ impl Model {
         self.data.selected_comment = 0;
         if self.selected_thread as usize >= self.data.data.len() {
             let t_over = self.overview.get(self.selected_thread as usize).unwrap();
-            let mut t = get_thread(t_over, 1)?;
+            let mut t = get_thread(&self.http_client, t_over, 1)?;
             t.comment_page = 1;
             self.data.data.push(t);
         }
@@ -61,7 +64,7 @@ impl Model {
         while self.data.selected_comment as usize >= t.comments.len() {
             t.comment_page += 1;
             let t_over = self.overview.get(self.selected_thread as usize).unwrap();
-            let mut new_comments = get_thread(t_over, t.comment_page)?;
+            let mut new_comments = get_thread(&self.http_client, t_over, t.comment_page)?;
             t.comments.append(&mut new_comments.comments);
         }
 
@@ -89,7 +92,7 @@ impl Model {
         while self.data.selected_comment as usize >= t.comments.len() {
             t.comment_page += 1;
             let t_over = self.overview.get(self.selected_thread as usize).unwrap();
-            let mut new_comments = get_thread(t_over, t.comment_page)?;
+            let mut new_comments = get_thread(&self.http_client, t_over, t.comment_page)?;
             t.comments.append(&mut new_comments.comments);
         }
         return Ok(());
@@ -118,11 +121,12 @@ impl Model {
 
     pub(crate) fn new() -> Model {
         let mut m = Model {
+            http_client: Client::new(),
             ..Default::default()
         };
-        m.overview = get_threads(1).unwrap();
+        m.overview = get_threads(&m.http_client, 1).unwrap();
         m.overview_page = 1;
-        let t = get_thread(m.overview.get(m.selected_thread as usize).unwrap(), 1).unwrap();
+        let t = get_thread(&m.http_client, m.overview.get(m.selected_thread as usize).unwrap(), 1).unwrap();
         m.data.data.push(t);
         return m;
     }

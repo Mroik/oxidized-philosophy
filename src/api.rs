@@ -1,15 +1,16 @@
 use std::error::Error;
 
 use quick_xml::{de::from_str, events::Event, Reader};
+use reqwest::blocking::Client;
 
 use crate::{
     overview::{ThreadOverview, XMLDiscussion},
     thread::{ThreadComment, ThreadData, XMLComment},
 };
 
-pub fn get_threads(page: u16) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
+pub fn get_threads(client: &Client, page: u16) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
     let url = format!("https://thephilosophyforum.com/discussions/p{}", page);
-    let body = reqwest::blocking::get(url)?.text()?;
+    let body = client.get(url).send()?.text()?;
     let mut reader = Reader::from_str(body.as_str());
     reader.trim_text(true);
 
@@ -52,10 +53,10 @@ pub fn get_threads(page: u16) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
     return Ok(result);
 }
 
-pub fn get_thread(thread: &ThreadOverview, page: u16) -> Result<ThreadData, Box<dyn Error>> {
+pub fn get_thread(client: &Client, thread: &ThreadOverview, page: u16) -> Result<ThreadData, Box<dyn Error>> {
     let mut url = thread.url.clone();
     url.push_str(format!("/p{}", page).as_str());
-    let body = reqwest::blocking::get(&thread.url)?.text()?;
+    let body = client.get(&thread.url).send()?.text()?;
     let mut result = ThreadData {
         title: thread.title.clone(),
         ..Default::default()
