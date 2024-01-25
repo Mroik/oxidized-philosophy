@@ -24,7 +24,7 @@ impl ThreadComment {
             .filter(|c| !c.is_empty())
             .collect();
         let mut i = 0;
-        while i < v.len() - 1 {
+        while i < v.len() - 1 && !(v.len() < v.len() - 1) {
             if v[i] == "\n" && v[i + 1] == "\n" {
                 v.remove(i + 1);
             } else {
