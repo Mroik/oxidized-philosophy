@@ -1,3 +1,4 @@
+use ratatui::text::Line;
 use serde::{de::Visitor, Deserialize};
 
 #[derive(Default, Debug)]
@@ -15,14 +16,22 @@ pub struct ThreadComment {
 }
 
 impl ThreadComment {
-    pub fn get_text(&self) -> String {
-        self.text
+    pub fn get_lines(&self) -> Vec<Line> {
+        let mut v: Vec<String> = self
+            .text
             .iter()
             .map(|c| c.to_string())
-            .fold(String::new(), |mut acc, x| {
-                acc.push_str(x.as_str());
-                acc
-            })
+            .filter(|c| !c.is_empty())
+            .collect();
+        let mut i = 0;
+        while i < v.len() - 1 {
+            if v[i] == "\n" && v[i + 1] == "\n" {
+                v.remove(i + 1);
+            } else {
+                i += 1;
+            }
+        }
+        return v.iter().map(|c| Line::raw(c.clone())).collect();
     }
 }
 
@@ -159,7 +168,8 @@ pub enum Choice {
 impl Choice {
     fn to_string(&self) -> String {
         match self {
-            Self::Other(t) => t.clone(),
+            Self::Br => String::from("\n"),
+            Self::Other(t) => t.trim().to_string(),
             _ => String::new(),
         }
     }

@@ -1,7 +1,6 @@
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
-    text::Line,
     widgets::{Block, Borders, List, ListState, Paragraph, Row, Table, TableState, Wrap},
     Frame,
 };
@@ -33,7 +32,7 @@ fn render_viwer(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rec
         .comments
         .get(model.data.selected_comment as usize)
         .unwrap();
-    let text = Line::from(comment.get_text());
+    let text = comment.get_lines();
     let parag = Paragraph::new(text)
         .block(
             Block::new()
@@ -43,7 +42,7 @@ fn render_viwer(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rec
         )
         .style(Style::new().white())
         .alignment(Alignment::Left)
-        .wrap(Wrap { trim: true })
+        .wrap(Wrap { trim: false })
         .scroll((model.viewer_scroll, 0));
     frame.render_widget(parag, area);
 }
@@ -53,7 +52,7 @@ fn render_comment_list(thread: &ThreadData, model: &Model, frame: &mut Frame, ar
         .comments
         .iter()
         .map(|x| Row::new(vec![x.author.as_str(), x.date.as_str()]));
-    let widths = [Constraint::Max(100), Constraint::Max(50)];
+    let widths = [Constraint::Percentage(30), Constraint::Percentage(50)];
     let table = Table::new(rows, widths)
         .block(
             Block::default()

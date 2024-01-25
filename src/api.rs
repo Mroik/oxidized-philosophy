@@ -79,7 +79,7 @@ pub fn get_thread(thread: &ThreadOverview, page: u16) -> Result<ThreadData, Box<
                         let mut comment_text = String::new();
                         comment_text.push_str("<html>");
                         comment_text.push_str(t_data.as_ref());
-                        comment_text.push_str("</html");
+                        comment_text.push_str("</html>");
 
                         let comment: XMLComment = from_str(&comment_text)?;
                         let ris = ThreadComment {
