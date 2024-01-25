@@ -151,6 +151,8 @@ pub struct XMLMessage {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Choice {
+    Sup,
+    S,
     Iframe,
     Ul,
     Img,
