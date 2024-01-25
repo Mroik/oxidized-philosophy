@@ -2,14 +2,11 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
     text::Line,
-    widgets::{Block, Borders, List, ListState, Paragraph, Wrap},
+    widgets::{Block, Borders, List, ListState, Paragraph, Row, Table, TableState, Wrap},
     Frame,
 };
 
-use crate::{
-    model::Model,
-    thread::{ThreadComment, ThreadData},
-};
+use crate::{model::Model, thread::ThreadData};
 
 fn generate_layout(frame: &Frame) -> (Rect, Rect, Rect) {
     let root = Layout::default()
@@ -52,19 +49,23 @@ fn render_viwer(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rec
 }
 
 fn render_comment_list(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rect) {
-    let comment_list = List::new(thread.comments.iter().map(format_comment_list_row))
+    let rows = thread
+        .comments
+        .iter()
+        .map(|x| Row::new(vec![x.author.as_str(), x.date.as_str()]));
+    let widths = [Constraint::Max(100), Constraint::Max(50)];
+    let table = Table::new(rows, widths)
         .block(
             Block::default()
                 .title("Comments")
-                .borders(Borders::ALL)
-                .style(Style::default().fg(Color::Red)),
+                .style(Style::default().fg(Color::Red))
+                .borders(Borders::ALL),
         )
-        .style(Style::default().fg(Color::White))
-        .highlight_style(Style::default().bg(Color::LightBlue))
+        .highlight_style(Style::new().bg(Color::LightBlue))
         .highlight_symbol(">>");
-    let mut state = ListState::default();
+    let mut state = TableState::default();
     state.select(Some(model.data.selected_comment.into()));
-    frame.render_stateful_widget(comment_list, area, &mut state);
+    frame.render_stateful_widget(table, area, &mut state);
 }
 
 fn render_overview(model: &Model, frame: &mut Frame, area: Rect) {
@@ -81,11 +82,4 @@ fn render_overview(model: &Model, frame: &mut Frame, area: Rect) {
     let mut state = ListState::default();
     state.select(Some(model.selected_thread.into()));
     frame.render_stateful_widget(threads_list, area, &mut state);
-}
-
-fn format_comment_list_row(item: &ThreadComment) -> String {
-    let mut ris = item.author.clone();
-    ris.push_str("                                       ");
-    ris.push_str(item.date.as_str());
-    return ris;
 }
