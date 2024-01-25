@@ -1,13 +1,15 @@
+use std::io::Stdout;
+
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
     widgets::{Block, Borders, List, ListState, Paragraph, Row, Table, TableState, Wrap},
-    Frame,
+    Frame, Terminal, backend::CrosstermBackend,
 };
 
 use crate::{model::Model, thread::ThreadData};
 
-fn generate_layout(frame: &Frame) -> (Rect, Rect, Rect) {
+fn generate_layout(frame: &Frame) -> (Rect, Rect, Rect, Rect) {
     let root = Layout::default()
         .direction(Direction::Horizontal)
         .constraints(vec![Constraint::Percentage(30), Constraint::Percentage(70)])
@@ -16,11 +18,15 @@ fn generate_layout(frame: &Frame) -> (Rect, Rect, Rect) {
         .direction(Direction::Vertical)
         .constraints(vec![Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(root[1]);
-    return (root[0], right[0], right[1]);
+    let info_area = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![Constraint::Min(1), Constraint::Length(1)])
+        .split(frame.size());
+    return (root[0], right[0], right[1], info_area[1]);
 }
 
 pub fn view(model: &Model, frame: &mut Frame) {
-    let (overview, comments, viewer) = generate_layout(frame);
+    let (overview, comments, viewer, _) = generate_layout(frame);
     render_overview(model, frame, overview);
     let thread = model.data.data.get(model.selected_thread as usize).unwrap();
     render_comment_list(thread, model, frame, comments);
@@ -81,4 +87,14 @@ fn render_overview(model: &Model, frame: &mut Frame, area: Rect) {
     let mut state = ListState::default();
     state.select(Some(model.selected_thread.into()));
     frame.render_stateful_widget(threads_list, area, &mut state);
+}
+
+pub fn print_info(terminal: &mut Terminal<CrosstermBackend<Stdout>>, text: &str) {
+    let _ = terminal.draw(|frame| {
+        let (_, _, _, info_area) = generate_layout(frame);
+        let parag = Paragraph::new(text)
+            .style(Style::default().yellow())
+            .alignment(Alignment::Left);
+        frame.render_widget(parag, info_area);
+    });
 }
