@@ -13,6 +13,7 @@ pub struct Model {
     pub overview_page: u16,
     pub data: ThreadsModel,
     pub viewer_scroll: u16,
+    pub multiplier: Vec<u32>,
 }
 
 #[derive(Default)]
@@ -31,6 +32,7 @@ pub enum Action {
     ScrollUp,
     Quit,
     Nothing,
+    Moltiply(u32),
 }
 
 impl Model {
@@ -124,17 +126,52 @@ impl Model {
         m.data.data.push(t);
         return m;
     }
+
+    fn add_multiplier(&mut self, n: u32) -> Result<(), Box<dyn Error>> {
+        self.multiplier.push(n);
+        return Ok(());
+    }
+
+    fn get_multiplier(&mut self) -> u32 {
+        if self.multiplier.is_empty() {
+            return 1;
+        }
+
+        let mut ris = 0;
+        while self.multiplier.len() > 0 {
+            let m = self.multiplier.remove(0);
+            ris += (10_u32).pow(self.multiplier.len() as u32) * m;
+        }
+        return ris;
+    }
 }
 
 pub fn update(model: &mut Model, action: Action) -> Result<(), Box<dyn Error>> {
     match action {
-        Action::NextThread => model.next_thread(),
-        Action::PrevThread => model.prev_thread(),
-        Action::NextComment => model.next_comment(),
-        Action::PrevComment => model.prev_comment(),
-        Action::ScrollDown => model.scroll_down(),
-        Action::ScrollUp => model.scroll_up(),
-        Action::Quit => panic!(),
-        Action::Nothing => Ok(()),
+        Action::Quit | Action::Nothing | Action::Moltiply(_) => {
+            let _ = match action {
+                Action::Quit => unreachable!(),
+                Action::Nothing => Ok(()),
+                Action::Moltiply(n) => model.add_multiplier(n),
+                _ => Ok(()),
+            };
+            return Ok(());
+        }
+        _ => (),
+    };
+
+    let mult = model.get_multiplier();
+
+    for _ in 0..mult {
+        let _ = match action {
+            Action::NextThread => model.next_thread(),
+            Action::PrevThread => model.prev_thread(),
+            Action::NextComment => model.next_comment(),
+            Action::PrevComment => model.prev_comment(),
+            Action::ScrollDown => model.scroll_down(),
+            Action::ScrollUp => model.scroll_up(),
+            _ => unreachable!(),
+        };
     }
+    return Ok(());
 }
