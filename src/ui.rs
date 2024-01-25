@@ -41,7 +41,8 @@ fn render_viwer(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rec
         .block(
             Block::new()
                 .title(thread.title.clone())
-                .borders(Borders::ALL),
+                .borders(Borders::ALL)
+                .style(Style::default().fg(Color::Red)),
         )
         .style(Style::new().white())
         .alignment(Alignment::Left)
@@ -52,7 +53,12 @@ fn render_viwer(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rec
 
 fn render_comment_list(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rect) {
     let comment_list = List::new(thread.comments.iter().map(format_comment_list_row))
-        .block(Block::default().title("Comments").borders(Borders::ALL))
+        .block(
+            Block::default()
+                .title("Comments")
+                .borders(Borders::ALL)
+                .style(Style::default().fg(Color::Red)),
+        )
         .style(Style::default().fg(Color::White))
         .highlight_style(Style::default().bg(Color::LightBlue))
         .highlight_symbol(">>");
@@ -63,7 +69,12 @@ fn render_comment_list(thread: &ThreadData, model: &Model, frame: &mut Frame, ar
 
 fn render_overview(model: &Model, frame: &mut Frame, area: Rect) {
     let threads_list = List::new(model.overview.iter().map(|item| item.title.clone()))
-        .block(Block::default().title("Overview").borders(Borders::ALL))
+        .block(
+            Block::default()
+                .title("Overview")
+                .borders(Borders::ALL)
+                .style(Style::default().fg(Color::Red)),
+        )
         .style(Style::default().fg(Color::White))
         .highlight_style(Style::default().bg(Color::LightBlue))
         .highlight_symbol(">>");
