@@ -16,3 +16,6 @@ serde = { version = "1.0.195", features = ["derive"] }
 strip = true
 lto = true
 panic = "abort"
+
+[profile.dev]
+overflow-checks = false

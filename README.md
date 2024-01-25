@@ -9,6 +9,7 @@ Controls:
 - `PgUp, PgDn` scrolling on the viewer
 - `q` quit
 - `0..9` vim-like multiplier
+- `Esc` nullifies the action multiplier
 
 TODO: Properly parse comment text. The forum allows for BBCodes so some endup
 translating into annoying HTML tags sprinkled across the text.

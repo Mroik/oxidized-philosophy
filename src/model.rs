@@ -36,6 +36,7 @@ pub enum Action {
     Quit,
     Nothing,
     Moltiply(u32),
+    Nullify,
 }
 
 impl Model {
@@ -148,15 +149,21 @@ impl Model {
         }
         return ris;
     }
+
+    fn clean_multiplier(&mut self) -> Result<(), Box<dyn Error>> {
+        self.multiplier.clear();
+        return Ok(());
+    }
 }
 
 pub fn update(model: &mut Model, action: Action) -> Result<(), Box<dyn Error>> {
     match action {
-        Action::Quit | Action::Nothing | Action::Moltiply(_) => {
+        Action::Quit | Action::Nothing | Action::Moltiply(_) | Action::Nullify => {
             let _ = match action {
                 Action::Quit => unreachable!(),
                 Action::Nothing => Ok(()),
                 Action::Moltiply(n) => model.add_multiplier(n),
+                Action::Nullify => model.clean_multiplier(),
                 _ => Ok(()),
             };
             return Ok(());
