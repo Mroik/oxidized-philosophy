@@ -143,7 +143,7 @@ impl Model {
         }
 
         let mut ris = 0;
-        while self.multiplier.len() > 0 {
+        while !self.multiplier.is_empty() {
             let m = self.multiplier.remove(0);
             ris += (10_u32).pow(self.multiplier.len() as u32) * m;
         }

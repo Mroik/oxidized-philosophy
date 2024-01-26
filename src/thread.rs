@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use ratatui::text::Line;
 use serde::{de::Visitor, Deserialize};
 
@@ -167,13 +169,14 @@ pub enum Choice {
     #[serde(rename = "$text")]
     Other(String),
 }
-impl Choice {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for Choice {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ris = match self {
             Self::Br => String::from("\n"),
             Self::Other(t) => t.trim().to_string(),
             _ => String::new(),
-        }
+        };
+        write!(f, "{}", ris)
     }
 }
 

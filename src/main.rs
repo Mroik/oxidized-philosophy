@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     KeyCode::Char('n') => Action::NextComment,
                     KeyCode::Char('p') => Action::PrevComment,
                     KeyCode::Char('q') => Action::Quit,
-                    KeyCode::Char(n) if n >= '0' && n <= '9' => Action::Moltiply(n.to_digit(10).unwrap()),
+                    KeyCode::Char(n) if n.is_ascii_digit() => Action::Moltiply(n.to_digit(10).unwrap()),
                     KeyCode::Esc => Action::Nullify,
                     _ => Action::Nothing,
                 };
