@@ -1,4 +1,4 @@
-use std::{error::Error, io::stdout, process::exit};
+use std::{error::Error, io::stdout};
 
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
@@ -22,8 +22,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     terminal.clear()?;
 
     let mut model = Model::new(&mut terminal);
+    let mut running = true;
 
-    loop {
+    while running {
         terminal.draw(|frame| view(&model, frame))?;
         if let Event::Key(key) = event::read().unwrap() {
             if key.kind == KeyEventKind::Press {
@@ -39,16 +40,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                     KeyCode::Esc => Action::Nullify,
                     _ => Action::Nothing,
                 };
+
                 if m == Action::Quit {
-                    stdout().execute(LeaveAlternateScreen).unwrap();
-                    disable_raw_mode().unwrap();
-                    exit(0);
-                }
-                update(&mut model, m, &mut terminal).unwrap();
-                if m != Action::Nothing {
-                    terminal.draw(|frame| view(&model, frame))?;
+                    running = false;
+                } else {
+                    update(&mut model, m, &mut terminal).unwrap();
+                    if m != Action::Nothing {
+                        terminal.draw(|frame| view(&model, frame))?;
+                    }
                 }
             }
         }
     }
+    stdout().execute(LeaveAlternateScreen)?;
+    disable_raw_mode()?;
+    return Ok(());
 }
