@@ -1,10 +1,11 @@
 use std::io::Stdout;
 
 use ratatui::{
+    backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
     widgets::{Block, Borders, List, ListState, Paragraph, Row, Table, TableState, Wrap},
-    Frame, Terminal, backend::CrosstermBackend,
+    Frame, Terminal,
 };
 
 use crate::{model::Model, thread::ThreadData};
