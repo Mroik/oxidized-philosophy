@@ -24,7 +24,16 @@ impl ThreadComment {
             .iter()
             .map(|c| c.to_string())
             .filter(|c| !c.is_empty())
-            .collect();
+            .fold(vec![String::new()], |mut acc, s| {
+                if s == "\n" || acc.last().unwrap() == "\n" {
+                    acc.push(s);
+                } else {
+                    acc.last_mut().unwrap().push_str(s.as_str());
+                }
+                acc
+            });
+
+        // Remove adjacent newlines
         let mut i = 0;
         while i < v.len() - 1 && !(v.len() < v.len() - 1) {
             if v[i] == "\n" && v[i + 1] == "\n" {
@@ -161,7 +170,10 @@ pub enum Choice {
     U,
     Span,
     Div,
-    A,
+    A {
+        #[serde(rename = "$text")]
+        text: String
+    },
     Blockquote,
     Br,
     I,
@@ -174,6 +186,7 @@ impl Display for Choice {
         let ris = match self {
             Self::Br => String::from("\n"),
             Self::Other(t) => t.trim().to_string(),
+            Self::A { text: t } => t.trim().to_string(),
             _ => String::new(),
         };
         write!(f, "{}", ris)
