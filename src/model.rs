@@ -1,5 +1,6 @@
-use std::error::Error;
+use std::{error::Error, io::Stdout};
 
+use ratatui::{backend::CrosstermBackend, Terminal};
 use reqwest::blocking::Client;
 
 use crate::{
@@ -25,7 +26,7 @@ pub struct ThreadsModel {
     pub selected_comment: u16,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Action {
     NextThread,
     PrevThread,
@@ -40,11 +41,15 @@ pub enum Action {
 }
 
 impl Model {
-    fn next_thread(&mut self) -> Result<(), Box<dyn Error>> {
+    fn next_thread(
+        &mut self,
+        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    ) -> Result<(), Box<dyn Error>> {
         self.selected_thread += 1;
         while self.selected_thread as usize >= self.overview.len() {
             self.overview_page += 1;
-            let mut new_overviews = get_threads(&self.http_client, self.overview_page)?;
+            let mut new_overviews =
+                get_threads(&self.http_client, self.overview_page, terminal, true)?;
             self.overview.append(&mut new_overviews);
         }
 
@@ -52,12 +57,12 @@ impl Model {
         self.data.selected_comment = 0;
         if self.selected_thread as usize >= self.data.data.len() {
             let t_over = self.overview.get(self.selected_thread as usize).unwrap();
-            let mut t = get_thread(&self.http_client, t_over, 1)?;
+            let mut t = get_thread(&self.http_client, t_over, 1, terminal, true)?;
             t.comment_page = 1;
             self.data.data.push(t);
         }
 
-        let mut t = self
+        let t = self
             .data
             .data
             .get_mut(self.selected_thread as usize)
@@ -65,7 +70,8 @@ impl Model {
         while self.data.selected_comment as usize >= t.comments.len() {
             t.comment_page += 1;
             let t_over = self.overview.get(self.selected_thread as usize).unwrap();
-            let mut new_comments = get_thread(&self.http_client, t_over, t.comment_page)?;
+            let mut new_comments =
+                get_thread(&self.http_client, t_over, t.comment_page, terminal, true)?;
             t.comments.append(&mut new_comments.comments);
         }
 
@@ -82,10 +88,13 @@ impl Model {
         return Ok(());
     }
 
-    fn next_comment(&mut self) -> Result<(), Box<dyn Error>> {
+    fn next_comment(
+        &mut self,
+        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    ) -> Result<(), Box<dyn Error>> {
         self.data.selected_comment += 1;
         self.viewer_scroll = 0;
-        let mut t = self
+        let t = self
             .data
             .data
             .get_mut(self.selected_thread as usize)
@@ -93,7 +102,8 @@ impl Model {
         while self.data.selected_comment as usize >= t.comments.len() {
             t.comment_page += 1;
             let t_over = self.overview.get(self.selected_thread as usize).unwrap();
-            let mut new_comments = get_thread(&self.http_client, t_over, t.comment_page)?;
+            let mut new_comments =
+                get_thread(&self.http_client, t_over, t.comment_page, terminal, true)?;
             t.comments.append(&mut new_comments.comments);
         }
         return Ok(());
@@ -120,14 +130,21 @@ impl Model {
         return Ok(());
     }
 
-    pub(crate) fn new() -> Model {
+    pub(crate) fn new(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Model {
         let mut m = Model {
             http_client: Client::new(),
             ..Default::default()
         };
-        m.overview = get_threads(&m.http_client, 1).unwrap();
+        m.overview = get_threads(&m.http_client, 1, terminal, false).unwrap();
         m.overview_page = 1;
-        let t = get_thread(&m.http_client, m.overview.get(m.selected_thread as usize).unwrap(), 1).unwrap();
+        let t = get_thread(
+            &m.http_client,
+            m.overview.get(m.selected_thread as usize).unwrap(),
+            1,
+            terminal,
+            false,
+        )
+        .unwrap();
         m.data.data.push(t);
         return m;
     }
@@ -156,7 +173,11 @@ impl Model {
     }
 }
 
-pub fn update(model: &mut Model, action: Action) -> Result<(), Box<dyn Error>> {
+pub fn update(
+    model: &mut Model,
+    action: Action,
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+) -> Result<(), Box<dyn Error>> {
     match action {
         Action::Quit | Action::Nothing | Action::Moltiply(_) | Action::Nullify => {
             let _ = match action {
@@ -175,9 +196,9 @@ pub fn update(model: &mut Model, action: Action) -> Result<(), Box<dyn Error>> {
 
     for _ in 0..mult {
         let _ = match action {
-            Action::NextThread => model.next_thread(),
+            Action::NextThread => model.next_thread(terminal),
             Action::PrevThread => model.prev_thread(),
-            Action::NextComment => model.next_comment(),
+            Action::NextComment => model.next_comment(terminal),
             Action::PrevComment => model.prev_comment(),
             Action::ScrollDown => model.scroll_down(),
             Action::ScrollUp => model.scroll_up(),

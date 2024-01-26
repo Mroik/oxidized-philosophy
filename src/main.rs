@@ -21,13 +21,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     terminal.clear()?;
 
-    let mut model = Model::new();
+    let mut model = Model::new(&mut terminal);
+    let mut running = true;
 
-    loop {
-        terminal.draw(|frame| {
-            view(&model, frame);
-        })?;
-        if let Event::Key(key) = event::read()? {
+    while running {
+        terminal.draw(|frame| view(&model, frame))?;
+        if let Event::Key(key) = event::read().unwrap() {
             if key.kind == KeyEventKind::Press {
                 let m = match key.code {
                     KeyCode::Up => Action::PrevThread,
@@ -37,20 +36,25 @@ fn main() -> Result<(), Box<dyn Error>> {
                     KeyCode::Char('n') => Action::NextComment,
                     KeyCode::Char('p') => Action::PrevComment,
                     KeyCode::Char('q') => Action::Quit,
-                    KeyCode::Char(n) if n.is_ascii_digit() => Action::Moltiply(n.to_digit(10).unwrap()),
+                    KeyCode::Char(n) if n.is_ascii_digit() => {
+                        Action::Moltiply(n.to_digit(10).unwrap())
+                    }
                     KeyCode::Esc => Action::Nullify,
                     _ => Action::Nothing,
                 };
-                if m == Action::Quit {
-                    break;
-                }
 
-                update(&mut model, m)?;
+                if m == Action::Quit {
+                    running = false;
+                } else {
+                    update(&mut model, m, &mut terminal).unwrap();
+                    if m != Action::Nothing {
+                        terminal.draw(|frame| view(&model, frame))?;
+                    }
+                }
             }
         }
     }
-
     stdout().execute(LeaveAlternateScreen)?;
     disable_raw_mode()?;
-    Ok(())
+    return Ok(());
 }

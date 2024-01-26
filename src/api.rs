@@ -1,15 +1,25 @@
-use std::error::Error;
+use std::{error::Error, io::Stdout};
 
 use quick_xml::{de::from_str, events::Event, Reader};
+use ratatui::{backend::CrosstermBackend, Terminal};
 use reqwest::blocking::Client;
 
 use crate::{
     overview::{ThreadOverview, XMLDiscussion},
     thread::{ThreadComment, ThreadData, XMLComment},
+    ui::print_info,
 };
 
-pub fn get_threads(client: &Client, page: u16) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
+pub fn get_threads(
+    client: &Client,
+    page: u16,
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    draw: bool,
+) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
     let url = format!("https://thephilosophyforum.com/discussions/p{}", page);
+    if draw {
+        print_info(terminal, "Fetching threads overviews...");
+    }
     let body = client.get(url).send()?.text()?;
     let mut reader = Reader::from_str(body.as_str());
     reader.trim_text(true);
@@ -53,9 +63,18 @@ pub fn get_threads(client: &Client, page: u16) -> Result<Vec<ThreadOverview>, Bo
     return Ok(result);
 }
 
-pub fn get_thread(client: &Client, thread: &ThreadOverview, page: u16) -> Result<ThreadData, Box<dyn Error>> {
+pub fn get_thread(
+    client: &Client,
+    thread: &ThreadOverview,
+    page: u16,
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    draw: bool,
+) -> Result<ThreadData, Box<dyn Error>> {
     let mut url = thread.url.clone();
     url.push_str(format!("/p{}", page).as_str());
+    if draw {
+        print_info(terminal, "Fetching thread data...");
+    }
     let body = client.get(&thread.url).send()?.text()?;
     let mut result = ThreadData {
         title: thread.title.clone(),
