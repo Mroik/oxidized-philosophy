@@ -172,7 +172,7 @@ pub enum Choice {
     Div,
     A {
         #[serde(rename = "$text")]
-        text: String
+        text: Option<String>
     },
     Blockquote,
     Br,
@@ -186,7 +186,13 @@ impl Display for Choice {
         let ris = match self {
             Self::Br => String::from("\n"),
             Self::Other(t) => t.trim().to_string(),
-            Self::A { text: t } => t.trim().to_string(),
+            Self::A { text: t } => {
+                if t.is_some() {
+                    t.as_ref().unwrap().trim().to_string()
+                } else {
+                    String::new()
+                }
+            },
             _ => String::new(),
         };
         write!(f, "{}", ris)
