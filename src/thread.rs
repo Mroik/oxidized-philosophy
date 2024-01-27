@@ -213,9 +213,8 @@ impl Display for Choice {
                         let mut text = match spans.get(1).unwrap() {
                             Self::Span { data: ss } => {
                                 ss.as_ref().unwrap().iter().fold(String::new(), |mut acc, s| {
-                                    match s {
-                                        Self::Other(d) => acc.push_str(d),
-                                        _ => ()
+                                    if let Self::Other(d) = s {
+                                        acc.push_str(d);
                                     };
                                     acc
                                 })
