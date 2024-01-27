@@ -190,7 +190,10 @@ pub enum Choice {
         data: Vec<Choice>
     },
     Br,
-    I,
+    I {
+        #[serde(rename = "$value")]
+        text: Vec<Choice>
+    },
     B {
         #[serde(rename = "$value")]
         text: Vec<Choice>
@@ -221,6 +224,15 @@ impl Display for Choice {
                                         Self::B { text } => {
                                             for x in text.iter() {
                                                 if let Self::Other(t) = x {
+                                                    acc.push(' ');
+                                                    acc.push_str(t);
+                                                }
+                                            }
+                                        },
+                                        Self::I { text } => {
+                                            for x in text.iter() {
+                                                if let Self::Other(t) = x {
+                                                    acc.push(' ');
                                                     acc.push_str(t);
                                                 }
                                             }
@@ -261,6 +273,16 @@ impl Display for Choice {
             Self::B { text: t } => {
                 t.iter().fold(String::new(), |mut acc, s| {
                     if let Self::Other(text) = s {
+                        acc.push(' ');
+                        acc.push_str(text);
+                    }
+                    acc
+                })
+            },
+            Self::I { text: t } => {
+                t.iter().fold(String::new(), |mut acc, s| {
+                    if let Self::Other(text) = s {
+                        acc.push(' ');
                         acc.push_str(text);
                     }
                     acc
