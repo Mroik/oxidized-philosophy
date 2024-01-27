@@ -75,7 +75,7 @@ pub fn get_thread(
     if draw {
         print_info(terminal, "Fetching thread data...");
     }
-    let body = client.get(&thread.url).send()?.text()?;
+    let body = client.get(url).send()?.text()?;
     let mut result = ThreadData {
         title: thread.title.clone(),
         ..Default::default()
