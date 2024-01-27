@@ -33,8 +33,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                     KeyCode::Down => Action::NextThread,
                     KeyCode::PageUp => Action::ScrollUp,
                     KeyCode::PageDown => Action::ScrollDown,
-                    KeyCode::Char('n') => Action::NextComment,
-                    KeyCode::Char('p') => Action::PrevComment,
+                    KeyCode::Char('n') | KeyCode::Right => Action::NextComment,
+                    KeyCode::Char('p') | KeyCode::Left => Action::PrevComment,
                     KeyCode::Char('q') => Action::Quit,
                     KeyCode::Char(n) if n.is_ascii_digit() => {
                         Action::Moltiply(n.to_digit(10).unwrap())
