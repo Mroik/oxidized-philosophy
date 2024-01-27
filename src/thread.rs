@@ -191,7 +191,10 @@ pub enum Choice {
     },
     Br,
     I,
-    B,
+    B {
+        #[serde(rename = "$value")]
+        text: Vec<Choice>
+    },
     #[serde(rename = "$text")]
     Other(String),
 }
@@ -213,9 +216,17 @@ impl Display for Choice {
                         let mut text = match spans.get(1).unwrap() {
                             Self::Span { data: ss } => {
                                 ss.as_ref().unwrap().iter().fold(String::new(), |mut acc, s| {
-                                    if let Self::Other(d) = s {
-                                        acc.push_str(d);
-                                    };
+                                    match s {
+                                        Self::Other(text) => acc.push_str(text),
+                                        Self::B { text } => {
+                                            for x in text.iter() {
+                                                if let Self::Other(t) = x {
+                                                    acc.push_str(t);
+                                                }
+                                            }
+                                        },
+                                        _ => (),
+                                    }
                                     acc
                                 })
                             },
@@ -246,6 +257,14 @@ impl Display for Choice {
                     },
                     _ => unreachable!(),
                 }
+            },
+            Self::B { text: t } => {
+                t.iter().fold(String::new(), |mut acc, s| {
+                    if let Self::Other(text) = s {
+                        acc.push_str(text);
+                    }
+                    acc
+                })
             },
             _ => String::new(),
         };
