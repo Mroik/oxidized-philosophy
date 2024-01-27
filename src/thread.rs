@@ -27,6 +27,11 @@ impl ThreadComment {
             .fold(vec![String::new()], |mut acc, s| {
                 if s == "\n" || acc.last().unwrap() == "\n" {
                     acc.push(s);
+                } else if s.contains('\n') {
+                    for ns in s.split('\n') {
+                        acc.push(ns.to_string());
+                        acc.push("\n".to_string());
+                    }
                 } else {
                     acc.last_mut().unwrap().push_str(s.as_str());
                 }
@@ -168,13 +173,22 @@ pub enum Choice {
     Ul,
     Img,
     U,
-    Span,
-    Div,
+    Span {
+        #[serde(rename = "$value")]
+        data: Option<Vec<Choice>>
+    },
+    Div {
+        #[serde(rename = "$value")]
+        data: Vec<Choice>
+    },
     A {
         #[serde(rename = "$text")]
         text: Option<String>
     },
-    Blockquote,
+    Blockquote {
+        #[serde(rename = "div")]
+        data: Vec<Choice>
+    },
     Br,
     I,
     B,
@@ -191,6 +205,47 @@ impl Display for Choice {
                     t.as_ref().unwrap().trim().to_string()
                 } else {
                     String::new()
+                }
+            },
+            Self::Blockquote { data } => {
+                match data.get(0).unwrap() {
+                    Self::Div { data: spans } => {
+                        let mut text = match spans.get(1).unwrap() {
+                            Self::Span { data: ss } => {
+                                ss.as_ref().unwrap().iter().fold(String::new(), |mut acc, s| {
+                                    match s {
+                                        Self::Other(d) => acc.push_str(d),
+                                        _ => ()
+                                    };
+                                    acc
+                                })
+                            },
+                            _ => unreachable!(),
+                        };
+
+                        if spans.len() > 2 {
+                            let author = match spans.get(2).unwrap() {
+                                Self::Span { data: ss } => {
+                                    if ss.as_ref().unwrap().len() < 2 {
+                                        String::new()
+                                    } else {
+                                        match ss.as_ref().unwrap().get(1).unwrap() {
+                                            Self::A { text: auth } => {
+                                                auth.as_ref().unwrap().clone()
+                                            },
+                                            _ => unreachable!()
+                                        }
+                                    }
+                                },
+                                _ => unreachable!()
+                            };
+
+                            text.push_str("\n-");
+                            text.push_str(author.as_str());
+                        }
+                        text
+                    },
+                    _ => unreachable!(),
                 }
             },
             _ => String::new(),
