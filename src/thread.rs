@@ -192,11 +192,11 @@ pub enum Choice {
     Br,
     I {
         #[serde(rename = "$value")]
-        text: Vec<Choice>
+        text: Option<Vec<Choice>>
     },
     B {
         #[serde(rename = "$value")]
-        text: Vec<Choice>
+        text: Option<Vec<Choice>>
     },
     #[serde(rename = "$text")]
     Other(String),
@@ -214,7 +214,7 @@ impl Display for Choice {
                 }
             },
             Self::Blockquote { data } => {
-                match data.get(0).unwrap() {
+                match data.first().unwrap() {
                     Self::Div { data: spans } => {
                         let mut text = match spans.get(1).unwrap() {
                             Self::Span { data: ss } => {
@@ -222,7 +222,7 @@ impl Display for Choice {
                                     match s {
                                         Self::Other(text) => acc.push_str(text),
                                         Self::B { text } => {
-                                            for x in text.iter() {
+                                            for x in text.as_ref().unwrap().iter() {
                                                 if let Self::Other(t) = x {
                                                     acc.push(' ');
                                                     acc.push_str(t);
@@ -230,7 +230,7 @@ impl Display for Choice {
                                             }
                                         },
                                         Self::I { text } => {
-                                            for x in text.iter() {
+                                            for x in text.as_ref().unwrap().iter() {
                                                 if let Self::Other(t) = x {
                                                     acc.push(' ');
                                                     acc.push_str(t);
@@ -271,22 +271,30 @@ impl Display for Choice {
                 }
             },
             Self::B { text: t } => {
-                t.iter().fold(String::new(), |mut acc, s| {
-                    if let Self::Other(text) = s {
-                        acc.push(' ');
-                        acc.push_str(text);
-                    }
-                    acc
-                })
+                if let Some(c) = t.as_ref(){
+                    c.iter().fold(String::new(), |mut acc, s| {
+                        if let Self::Other(text) = s {
+                            acc.push(' ');
+                            acc.push_str(text);
+                        }
+                        acc
+                    })
+                } else {
+                    String::new()
+                }
             },
             Self::I { text: t } => {
-                t.iter().fold(String::new(), |mut acc, s| {
-                    if let Self::Other(text) = s {
-                        acc.push(' ');
-                        acc.push_str(text);
-                    }
-                    acc
-                })
+                if let Some(c) = t.as_ref(){
+                    c.iter().fold(String::new(), |mut acc, s| {
+                        if let Self::Other(text) = s {
+                            acc.push(' ');
+                            acc.push_str(text);
+                        }
+                        acc
+                    })
+                } else {
+                    String::new()
+                }
             },
             _ => String::new(),
         };
