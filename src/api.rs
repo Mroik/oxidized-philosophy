@@ -95,7 +95,9 @@ pub fn get_thread(
                 }) {
                     None => (),
                     Some(_) => {
-                        let t_data = reader.read_text(tag.to_end().name())?.replace("&mdash;", "-");
+                        let t_data = reader
+                            .read_text(tag.to_end().name())?
+                            .replace("&mdash;", "-");
                         let mut comment_text = String::new();
                         comment_text.push_str("<html>");
                         comment_text.push_str(t_data.as_ref());

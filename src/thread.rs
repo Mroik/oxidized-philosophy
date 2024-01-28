@@ -201,13 +201,13 @@ impl Display for Choice {
 #[derive(Debug, Deserialize)]
 pub struct ChoiceSpan {
     #[serde(rename = "$value")]
-    data: Option<Vec<Choice>>
+    data: Option<Vec<Choice>>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ChoiceBlockquote {
     #[serde(rename = "div")]
-    data: Vec<Choice>
+    data: Vec<Choice>,
 }
 impl Display for ChoiceBlockquote {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -222,22 +222,26 @@ impl Display for ChoiceBlockquote {
 #[derive(Deserialize, Debug)]
 pub struct ChoiceDiv {
     #[serde(rename = "$value")]
-    data: Vec<Choice>
+    data: Vec<Choice>,
 }
 impl Display for ChoiceDiv {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut text = match self.data.get(1).unwrap() {
             Choice::Span(ss) => {
-                ss.data.as_ref().unwrap().iter().fold(String::new(), |mut acc, s| {
-                    match s {
-                        Choice::Other(text) => acc.push_str(text),
-                        Choice::B(text) => acc.push_str(text.to_string().as_str()),
-                        Choice::I(text) => acc.push_str(text.to_string().as_str()),
-                        _ => (),
-                    }
-                    acc
-                })
-            },
+                ss.data
+                    .as_ref()
+                    .unwrap()
+                    .iter()
+                    .fold(String::new(), |mut acc, s| {
+                        match s {
+                            Choice::Other(text) => acc.push_str(text),
+                            Choice::B(text) => acc.push_str(text.to_string().as_str()),
+                            Choice::I(text) => acc.push_str(text.to_string().as_str()),
+                            _ => (),
+                        }
+                        acc
+                    })
+            }
             _ => unreachable!(),
         };
 
@@ -249,11 +253,11 @@ impl Display for ChoiceDiv {
                     } else {
                         match ss.data.as_ref().unwrap().get(1).unwrap() {
                             Choice::A(auth) => auth.to_string(),
-                            _ => unreachable!()
+                            _ => unreachable!(),
                         }
                     }
-                },
-                _ => unreachable!()
+                }
+                _ => unreachable!(),
             };
 
             text.push_str("\n-");
@@ -266,7 +270,7 @@ impl Display for ChoiceDiv {
 #[derive(Deserialize, Debug)]
 pub struct ChoiceAnchor {
     #[serde(rename = "$text")]
-    text: Option<String>
+    text: Option<String>,
 }
 impl Display for ChoiceAnchor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -281,11 +285,11 @@ impl Display for ChoiceAnchor {
 #[derive(Deserialize, Debug)]
 pub struct ChoiceBold {
     #[serde(rename = "$value")]
-    text: Option<Vec<Choice>>
+    text: Option<Vec<Choice>>,
 }
 impl Display for ChoiceBold {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let text = if let Some(c) = self.text.as_ref(){
+        let text = if let Some(c) = self.text.as_ref() {
             c.iter().fold(String::new(), |mut acc, s| {
                 if let Choice::Other(text) = s {
                     acc.push(' ');
@@ -303,11 +307,11 @@ impl Display for ChoiceBold {
 #[derive(Deserialize, Debug)]
 pub struct ChoiceItalic {
     #[serde(rename = "$value")]
-    text: Option<Vec<Choice>>
+    text: Option<Vec<Choice>>,
 }
 impl Display for ChoiceItalic {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let text = if let Some(c) = self.text.as_ref(){
+        let text = if let Some(c) = self.text.as_ref() {
             c.iter().fold(String::new(), |mut acc, s| {
                 if let Choice::Other(text) = s {
                     acc.push(' ');
