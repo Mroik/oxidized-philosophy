@@ -49,6 +49,21 @@ pub enum Action {
 }
 
 impl Model {
+    pub fn add_bookmark(&mut self, over: &ThreadOverview, data: &ThreadData) {
+        if self.overview.iter().any(|x| x.url == over.url) {
+            return;
+        }
+        self.overview.push(over.clone());
+        self.data.data.push(data.clone());
+    }
+
+    pub fn delete_bookmark(&mut self, over: &ThreadOverview) {
+        if let Some(n) = self.overview.iter().position(|x| x == over) {
+            self.overview.remove(n);
+            self.data.data.remove(n);
+        }
+    }
+
     fn next_thread(
         &mut self,
         terminal: &mut Terminal<CrosstermBackend<Stdout>>,

@@ -10,6 +10,8 @@ Controls:
 - `q` quit
 - `0..9` vim-like multiplier
 - `Esc` nullifies the action multiplier
+- `b, u` bookmark, unbookmark
+- `z, x` switch between home and bookmarks
 
 TODO: Properly parse comment text. The forum allows for BBCodes so some endup
 translating into annoying HTML tags sprinkled across the text.

@@ -3,14 +3,14 @@ use std::fmt::Display;
 use ratatui::text::Line;
 use serde::{de::Visitor, Deserialize, Serialize};
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone)]
 pub struct ThreadData {
     pub title: String,
     pub comments: Vec<ThreadComment>,
     pub comment_page: u16,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ThreadComment {
     pub author: String,
     pub text: Vec<Choice>,
@@ -164,7 +164,7 @@ pub struct XMLMessage {
 }
 
 // TODO Parse proper types
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum Choice {
     Sup,
@@ -198,13 +198,13 @@ impl Display for Choice {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ChoiceSpan {
     #[serde(rename = "$value")]
     data: Option<Vec<Choice>>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ChoiceBlockquote {
     #[serde(rename = "div")]
     data: Vec<Choice>,
@@ -219,7 +219,7 @@ impl Display for ChoiceBlockquote {
     }
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Serialize, Clone)]
 pub struct ChoiceDiv {
     #[serde(rename = "$value")]
     data: Vec<Choice>,
@@ -267,7 +267,7 @@ impl Display for ChoiceDiv {
     }
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Serialize, Clone)]
 pub struct ChoiceAnchor {
     #[serde(rename = "$text")]
     text: Option<String>,
@@ -282,7 +282,7 @@ impl Display for ChoiceAnchor {
     }
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Serialize, Clone)]
 pub struct ChoiceBold {
     #[serde(rename = "$value")]
     text: Option<Vec<Choice>>,
@@ -304,7 +304,7 @@ impl Display for ChoiceBold {
     }
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Serialize, Clone)]
 pub struct ChoiceItalic {
     #[serde(rename = "$value")]
     text: Option<Vec<Choice>>,

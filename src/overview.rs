@@ -1,11 +1,16 @@
 use serde::{de::Visitor, Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ThreadOverview {
     pub title: String,
     pub url: String,
     pub author: String,
     pub replies: String,
+}
+impl PartialEq for ThreadOverview {
+    fn eq(&self, other: &Self) -> bool {
+        self.title == other.title
+    }
 }
 
 #[derive(Deserialize, Debug, Default)]
