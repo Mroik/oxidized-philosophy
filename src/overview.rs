@@ -1,6 +1,6 @@
-use serde::{de::Visitor, Deserialize};
+use serde::{de::Visitor, Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ThreadOverview {
     pub title: String,
     pub url: String,

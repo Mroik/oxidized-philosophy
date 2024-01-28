@@ -1,16 +1,16 @@
 use std::fmt::Display;
 
 use ratatui::text::Line;
-use serde::{de::Visitor, Deserialize};
+use serde::{de::Visitor, Deserialize, Serialize};
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct ThreadData {
     pub title: String,
     pub comments: Vec<ThreadComment>,
     pub comment_page: u16,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ThreadComment {
     pub author: String,
     pub text: Vec<Choice>,
@@ -164,7 +164,7 @@ pub struct XMLMessage {
 }
 
 // TODO Parse proper types
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Choice {
     Sup,
@@ -198,13 +198,13 @@ impl Display for Choice {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ChoiceSpan {
     #[serde(rename = "$value")]
     data: Option<Vec<Choice>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ChoiceBlockquote {
     #[serde(rename = "div")]
     data: Vec<Choice>,
@@ -219,7 +219,7 @@ impl Display for ChoiceBlockquote {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Serialize)]
 pub struct ChoiceDiv {
     #[serde(rename = "$value")]
     data: Vec<Choice>,
@@ -267,7 +267,7 @@ impl Display for ChoiceDiv {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Serialize)]
 pub struct ChoiceAnchor {
     #[serde(rename = "$text")]
     text: Option<String>,
@@ -282,7 +282,7 @@ impl Display for ChoiceAnchor {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Serialize)]
 pub struct ChoiceBold {
     #[serde(rename = "$value")]
     text: Option<Vec<Choice>>,
@@ -304,7 +304,7 @@ impl Display for ChoiceBold {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Serialize)]
 pub struct ChoiceItalic {
     #[serde(rename = "$value")]
     text: Option<Vec<Choice>>,

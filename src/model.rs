@@ -2,6 +2,7 @@ use std::{error::Error, io::Stdout};
 
 use ratatui::{backend::CrosstermBackend, Terminal};
 use reqwest::blocking::Client;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     api::{get_thread, get_threads},
@@ -9,7 +10,7 @@ use crate::{
     thread::ThreadData,
 };
 
-#[derive(Default)]
+#[derive(Default, Deserialize, Serialize)]
 pub struct Model {
     pub overview: Vec<ThreadOverview>,
     pub selected_thread: u16,
@@ -17,10 +18,11 @@ pub struct Model {
     pub data: ThreadsModel,
     pub viewer_scroll: u16,
     pub multiplier: Vec<u32>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub http_client: Client,
 }
 
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct ThreadsModel {
     pub data: Vec<ThreadData>,
     pub selected_comment: u16,

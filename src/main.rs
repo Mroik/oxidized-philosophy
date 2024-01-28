@@ -1,5 +1,5 @@
 #![allow(clippy::needless_return)]
-use std::{error::Error, io::stdout};
+use std::{error::Error, fs::File, io::stdout};
 
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
@@ -57,5 +57,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     stdout().execute(LeaveAlternateScreen)?;
     disable_raw_mode()?;
+
+    print!("Saving bookmarks... ");
+    let file = File::create("bookmarks.txt")?;
+    serde_cbor::to_writer(file, &model)?;
+    println!("done");
     return Ok(());
 }
