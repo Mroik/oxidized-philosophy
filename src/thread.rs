@@ -173,31 +173,13 @@ pub enum Choice {
     Ul,
     Img,
     U,
-    Span {
-        #[serde(rename = "$value")]
-        data: Option<Vec<Choice>>
-    },
-    Div {
-        #[serde(rename = "$value")]
-        data: Vec<Choice>
-    },
-    A {
-        #[serde(rename = "$text")]
-        text: Option<String>
-    },
-    Blockquote {
-        #[serde(rename = "div")]
-        data: Vec<Choice>
-    },
+    Span(ChoiceSpan),
+    Div(ChoiceDiv),
+    A(ChoiceAnchor),
+    Blockquote(ChoiceBlockquote),
     Br,
-    I {
-        #[serde(rename = "$value")]
-        text: Option<Vec<Choice>>
-    },
-    B {
-        #[serde(rename = "$value")]
-        text: Option<Vec<Choice>>
-    },
+    I(ChoiceItalic),
+    B(ChoiceBold),
     #[serde(rename = "$text")]
     Other(String),
 }
@@ -206,99 +188,137 @@ impl Display for Choice {
         let ris = match self {
             Self::Br => String::from("\n"),
             Self::Other(t) => t.trim().to_string(),
-            Self::A { text: t } => {
-                if t.is_some() {
-                    t.as_ref().unwrap().trim().to_string()
-                } else {
-                    String::new()
-                }
-            },
-            Self::Blockquote { data } => {
-                match data.first().unwrap() {
-                    Self::Div { data: spans } => {
-                        let mut text = match spans.get(1).unwrap() {
-                            Self::Span { data: ss } => {
-                                ss.as_ref().unwrap().iter().fold(String::new(), |mut acc, s| {
-                                    match s {
-                                        Self::Other(text) => acc.push_str(text),
-                                        Self::B { text } => {
-                                            for x in text.as_ref().unwrap().iter() {
-                                                if let Self::Other(t) = x {
-                                                    acc.push(' ');
-                                                    acc.push_str(t);
-                                                }
-                                            }
-                                        },
-                                        Self::I { text } => {
-                                            for x in text.as_ref().unwrap().iter() {
-                                                if let Self::Other(t) = x {
-                                                    acc.push(' ');
-                                                    acc.push_str(t);
-                                                }
-                                            }
-                                        },
-                                        _ => (),
-                                    }
-                                    acc
-                                })
-                            },
-                            _ => unreachable!(),
-                        };
-
-                        if spans.len() > 2 {
-                            let author = match spans.get(2).unwrap() {
-                                Self::Span { data: ss } => {
-                                    if ss.as_ref().unwrap().len() < 2 {
-                                        String::new()
-                                    } else {
-                                        match ss.as_ref().unwrap().get(1).unwrap() {
-                                            Self::A { text: auth } => {
-                                                auth.as_ref().unwrap().clone()
-                                            },
-                                            _ => unreachable!()
-                                        }
-                                    }
-                                },
-                                _ => unreachable!()
-                            };
-
-                            text.push_str("\n-");
-                            text.push_str(author.as_str());
-                        }
-                        text
-                    },
-                    _ => unreachable!(),
-                }
-            },
-            Self::B { text: t } => {
-                if let Some(c) = t.as_ref(){
-                    c.iter().fold(String::new(), |mut acc, s| {
-                        if let Self::Other(text) = s {
-                            acc.push(' ');
-                            acc.push_str(text);
-                        }
-                        acc
-                    })
-                } else {
-                    String::new()
-                }
-            },
-            Self::I { text: t } => {
-                if let Some(c) = t.as_ref(){
-                    c.iter().fold(String::new(), |mut acc, s| {
-                        if let Self::Other(text) = s {
-                            acc.push(' ');
-                            acc.push_str(text);
-                        }
-                        acc
-                    })
-                } else {
-                    String::new()
-                }
-            },
+            Self::A(text) => text.to_string(),
+            Self::Blockquote(data) => data.to_string(),
+            Self::B(text) => text.to_string(),
+            Self::I(text) => text.to_string(),
             _ => String::new(),
         };
         write!(f, "{}", ris)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ChoiceSpan {
+    #[serde(rename = "$value")]
+    data: Option<Vec<Choice>>
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ChoiceBlockquote {
+    #[serde(rename = "div")]
+    data: Vec<Choice>
+}
+impl Display for ChoiceBlockquote {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let text = match self.data.first().unwrap() {
+            Choice::Div(spans) => spans.to_string(),
+            _ => unreachable!(),
+        };
+        write!(f, "{}", text)
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ChoiceDiv {
+    #[serde(rename = "$value")]
+    data: Vec<Choice>
+}
+impl Display for ChoiceDiv {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut text = match self.data.get(1).unwrap() {
+            Choice::Span(ss) => {
+                ss.data.as_ref().unwrap().iter().fold(String::new(), |mut acc, s| {
+                    match s {
+                        Choice::Other(text) => acc.push_str(text),
+                        Choice::B(text) => acc.push_str(text.to_string().as_str()),
+                        Choice::I(text) => acc.push_str(text.to_string().as_str()),
+                        _ => (),
+                    }
+                    acc
+                })
+            },
+            _ => unreachable!(),
+        };
+
+        if self.data.len() > 2 {
+            let author = match self.data.get(2).unwrap() {
+                Choice::Span(ss) => {
+                    if ss.data.as_ref().unwrap().len() < 2 {
+                        String::new()
+                    } else {
+                        match ss.data.as_ref().unwrap().get(1).unwrap() {
+                            Choice::A(auth) => auth.to_string(),
+                            _ => unreachable!()
+                        }
+                    }
+                },
+                _ => unreachable!()
+            };
+
+            text.push_str("\n-");
+            text.push_str(author.as_str());
+        }
+        write!(f, "{}", text)
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ChoiceAnchor {
+    #[serde(rename = "$text")]
+    text: Option<String>
+}
+impl Display for ChoiceAnchor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let text = match self.text.clone() {
+            Some(s) => s,
+            None => String::new(),
+        };
+        write!(f, "{}", text)
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ChoiceBold {
+    #[serde(rename = "$value")]
+    text: Option<Vec<Choice>>
+}
+impl Display for ChoiceBold {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let text = if let Some(c) = self.text.as_ref(){
+            c.iter().fold(String::new(), |mut acc, s| {
+                if let Choice::Other(text) = s {
+                    acc.push(' ');
+                    acc.push_str(text);
+                }
+                acc
+            })
+        } else {
+            String::new()
+        };
+        write!(f, "{}", text)
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ChoiceItalic {
+    #[serde(rename = "$value")]
+    text: Option<Vec<Choice>>
+}
+impl Display for ChoiceItalic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let text = if let Some(c) = self.text.as_ref(){
+            c.iter().fold(String::new(), |mut acc, s| {
+                if let Choice::Other(text) = s {
+                    acc.push(' ');
+                    acc.push_str(text);
+                }
+                acc
+            })
+        } else {
+            String::new()
+        };
+        write!(f, "{}", text)
     }
 }
 
