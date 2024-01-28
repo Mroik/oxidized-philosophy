@@ -10,6 +10,8 @@ use model::{update, Action, Model};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use ui::view;
 
+use crate::model::TabState;
+
 mod api;
 mod model;
 mod overview;
@@ -22,11 +24,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     terminal.clear()?;
 
-    let mut model = Model::new(&mut terminal);
+    let mut model = [Model::new(&mut terminal), Model::new_bookmarks()];
+    let mut tab = TabState::Home;
     let mut running = true;
 
     while running {
-        terminal.draw(|frame| view(&model, frame))?;
+        let current_model = match tab {
+            TabState::Home => &mut model[0],
+            TabState::Bookmarks => &mut model[1],
+        };
+        terminal.draw(|frame| view(current_model, frame))?;
         if let Event::Key(key) = event::read().unwrap() {
             if key.kind == KeyEventKind::Press {
                 let m = match key.code {
@@ -41,15 +48,23 @@ fn main() -> Result<(), Box<dyn Error>> {
                         Action::Moltiply(n.to_digit(10).unwrap())
                     }
                     KeyCode::Esc => Action::Nullify,
+                    KeyCode::Char('z') => {
+                        tab = TabState::Home;
+                        Action::Nothing
+                    }
+                    KeyCode::Char('x') => {
+                        tab = TabState::Bookmarks;
+                        Action::Nothing
+                    }
                     _ => Action::Nothing,
                 };
 
                 if m == Action::Quit {
                     running = false;
                 } else {
-                    update(&mut model, m, &mut terminal).unwrap();
+                    update(current_model, m, &mut terminal, &tab).unwrap();
                     if m != Action::Nothing {
-                        terminal.draw(|frame| view(&model, frame))?;
+                        terminal.draw(|frame| view(current_model, frame))?;
                     }
                 }
             }
@@ -60,7 +75,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     print!("Saving bookmarks... ");
     let file = File::create("bookmarks.txt")?;
-    serde_cbor::to_writer(file, &model)?;
+    serde_cbor::to_writer(file, &model[1])?;
     println!("done");
     return Ok(());
 }

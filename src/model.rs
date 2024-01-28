@@ -28,6 +28,12 @@ pub struct ThreadsModel {
     pub selected_comment: u16,
 }
 
+#[derive(PartialEq)]
+pub enum TabState {
+    Home,
+    Bookmarks,
+}
+
 #[derive(PartialEq, Clone, Copy)]
 pub enum Action {
     NextThread,
@@ -46,13 +52,22 @@ impl Model {
     fn next_thread(
         &mut self,
         terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+        tab: &TabState,
     ) -> Result<(), Box<dyn Error>> {
+        if *tab == TabState::Bookmarks && self.overview.is_empty() {
+            return Ok(());
+        }
+
         self.selected_thread += 1;
-        while self.selected_thread as usize >= self.overview.len() {
+        while *tab == TabState::Home && self.selected_thread as usize >= self.overview.len() {
             self.overview_page += 1;
             let mut new_overviews =
                 get_threads(&self.http_client, self.overview_page, terminal, true)?;
             self.overview.append(&mut new_overviews);
+        }
+
+        if self.selected_thread as usize >= self.overview.len() {
+            self.selected_thread = self.overview.len() as u16 - 1;
         }
 
         self.viewer_scroll = 0;
@@ -132,7 +147,7 @@ impl Model {
         return Ok(());
     }
 
-    pub(crate) fn new(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Model {
+    pub(crate) fn new(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Self {
         let mut m = Model {
             http_client: Client::new(),
             ..Default::default()
@@ -149,6 +164,12 @@ impl Model {
         .unwrap();
         m.data.data.push(t);
         return m;
+    }
+
+    pub fn new_bookmarks() -> Self {
+        Model {
+            ..Default::default()
+        }
     }
 
     fn add_multiplier(&mut self, n: u32) -> Result<(), Box<dyn Error>> {
@@ -179,6 +200,7 @@ pub fn update(
     model: &mut Model,
     action: Action,
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    tab: &TabState,
 ) -> Result<(), Box<dyn Error>> {
     match action {
         Action::Quit | Action::Nothing | Action::Moltiply(_) | Action::Nullify => {
@@ -198,7 +220,7 @@ pub fn update(
 
     for _ in 0..mult {
         let _ = match action {
-            Action::NextThread => model.next_thread(terminal),
+            Action::NextThread => model.next_thread(terminal, tab),
             Action::PrevThread => model.prev_thread(),
             Action::NextComment => model.next_comment(terminal),
             Action::PrevComment => model.prev_comment(),

@@ -28,37 +28,70 @@ fn generate_layout(frame: &Frame) -> (Rect, Rect, Rect, Rect) {
 
 pub fn view(model: &Model, frame: &mut Frame) {
     let (overview, comments, viewer, _) = generate_layout(frame);
+    let thread = if model.overview.len() == 0 {
+        None
+    } else {
+        Some(model.data.data.get(model.selected_thread as usize).unwrap())
+    };
+
     render_overview(model, frame, overview);
-    let thread = model.data.data.get(model.selected_thread as usize).unwrap();
     render_comment_list(thread, model, frame, comments);
     render_viwer(thread, model, frame, viewer);
 }
 
-fn render_viwer(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rect) {
-    let comment = thread
-        .comments
-        .get(model.data.selected_comment as usize)
-        .unwrap();
-    let text = comment.get_lines();
-    let parag = Paragraph::new(text)
-        .block(
-            Block::new()
-                .title(thread.title.clone())
-                .borders(Borders::ALL)
-                .style(Style::default().fg(Color::Red)),
-        )
-        .style(Style::new().white())
-        .alignment(Alignment::Left)
-        .wrap(Wrap { trim: false })
-        .scroll((model.viewer_scroll, 0));
-    frame.render_widget(parag, area);
+// TODO Rewrite
+fn render_viwer(thread: Option<&ThreadData>, model: &Model, frame: &mut Frame, area: Rect) {
+    if thread.is_some() {
+        let comment = thread
+            .unwrap()
+            .comments
+            .get(model.data.selected_comment as usize)
+            .unwrap();
+        let text = if model.overview.len() == 0 {
+            vec![]
+        } else {
+            comment.get_lines()
+        };
+
+        let parag = Paragraph::new(text)
+            .block(
+                Block::new()
+                    .title(thread.unwrap().title.clone())
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::Red)),
+            )
+            .style(Style::new().white())
+            .alignment(Alignment::Left)
+            .wrap(Wrap { trim: false })
+            .scroll((model.viewer_scroll, 0));
+        frame.render_widget(parag, area);
+    } else {
+        let parag = Paragraph::new("")
+            .block(
+                Block::new()
+                    .title("")
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::Red)),
+            )
+            .style(Style::new().white())
+            .alignment(Alignment::Left)
+            .wrap(Wrap { trim: false })
+            .scroll((model.viewer_scroll, 0));
+        frame.render_widget(parag, area);
+    }
 }
 
-fn render_comment_list(thread: &ThreadData, model: &Model, frame: &mut Frame, area: Rect) {
-    let rows = thread
-        .comments
-        .iter()
-        .map(|x| Row::new(vec![x.author.as_str(), x.date.as_str()]));
+// TODO Rewrite
+fn render_comment_list(thread: Option<&ThreadData>, model: &Model, frame: &mut Frame, area: Rect) {
+    let rows = if let Some(t) = thread {
+        t.comments
+            .iter()
+            .map(|x| Row::new(vec![x.author.as_str(), x.date.as_str()]))
+            .collect()
+    } else {
+        vec![]
+    };
+
     let widths = [Constraint::Percentage(30), Constraint::Percentage(50)];
     let table = Table::new(rows, widths)
         .block(
@@ -69,8 +102,14 @@ fn render_comment_list(thread: &ThreadData, model: &Model, frame: &mut Frame, ar
         )
         .highlight_style(Style::new().bg(Color::LightBlue))
         .highlight_symbol(">>");
+
     let mut state = TableState::default();
-    state.select(Some(model.data.selected_comment.into()));
+    let s = if let Some(_) = thread {
+        Some(model.data.selected_comment.into())
+    } else {
+        None
+    };
+    state.select(s);
     frame.render_stateful_widget(table, area, &mut state);
 }
 
@@ -86,7 +125,12 @@ fn render_overview(model: &Model, frame: &mut Frame, area: Rect) {
         .highlight_style(Style::default().bg(Color::LightBlue))
         .highlight_symbol(">>");
     let mut state = ListState::default();
-    state.select(Some(model.selected_thread.into()));
+    let s = if model.overview.len() == 0 {
+        None
+    } else {
+        Some(model.selected_thread.into())
+    };
+    state.select(s);
     frame.render_stateful_widget(threads_list, area, &mut state);
 }
 
