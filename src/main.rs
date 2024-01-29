@@ -92,10 +92,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                         Action::Nothing
                     }
                     KeyCode::Char('u') => {
-                        let mm = model.get(0).unwrap();
-                        let over = mm
+                        let over = current_model
                             .overview
-                            .get(mm.selected_thread as usize)
+                            .get(current_model.selected_thread as usize)
                             .unwrap()
                             .clone();
                         model.get_mut(1).unwrap().delete_bookmark(&over);
