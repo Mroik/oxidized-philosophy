@@ -1,4 +1,4 @@
-#![allow(clippy::needless_return)]
+#![allow(clippy::needless_return, arithmetic_overflow)]
 use std::{
     error::Error,
     fs::{self, File},
@@ -57,6 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     KeyCode::Char('n') | KeyCode::Right => Action::NextComment,
                     KeyCode::Char('p') | KeyCode::Left => Action::PrevComment,
                     KeyCode::Char('q') => Action::Quit,
+                    KeyCode::Char('c') => Action::CleanComments,
                     KeyCode::Char(n) if n.is_ascii_digit() => {
                         Action::Moltiply(n.to_digit(10).unwrap())
                     }

@@ -46,6 +46,7 @@ pub enum Action {
     Nothing,
     Moltiply(u32),
     Nullify,
+    CleanComments,
 }
 
 impl Model {
@@ -62,6 +63,22 @@ impl Model {
             self.overview.remove(n);
             self.data.data.remove(n);
         }
+    }
+
+    pub fn clean_comments(
+        &mut self,
+        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    ) -> Result<(), Box<dyn Error>> {
+        let thread = self
+            .data
+            .data
+            .get_mut(self.selected_thread as usize)
+            .unwrap();
+        thread.comments.clear();
+        self.data.selected_comment = 0 - 1;
+        thread.comment_page = 0;
+        self.next_comment(terminal)?;
+        return Ok(());
     }
 
     fn next_thread(
@@ -241,6 +258,7 @@ pub fn update(
             Action::PrevComment => model.prev_comment(),
             Action::ScrollDown => model.scroll_down(),
             Action::ScrollUp => model.scroll_up(),
+            Action::CleanComments => model.clean_comments(terminal),
             _ => unreachable!(),
         };
     }
