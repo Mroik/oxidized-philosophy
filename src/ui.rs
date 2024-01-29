@@ -4,6 +4,7 @@ use ratatui::{
     backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
+    text::Line,
     widgets::{Block, Borders, List, ListState, Paragraph, Row, Table, TableState, Wrap},
     Frame, Terminal,
 };
@@ -39,49 +40,36 @@ pub fn view(model: &Model, frame: &mut Frame) {
     render_viwer(thread, model, frame, viewer);
 }
 
-// TODO Rewrite
 fn render_viwer(thread: Option<&ThreadData>, model: &Model, frame: &mut Frame, area: Rect) {
-    if thread.is_some() {
-        let comment = thread
-            .unwrap()
+    fn generate_paragraph(text: Vec<Line>, title: String, offset: u16) -> Paragraph {
+        Paragraph::new(text)
+            .block(
+                Block::new()
+                    .title(title)
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::Red)),
+            )
+            .style(Style::new().white())
+            .alignment(Alignment::Left)
+            .wrap(Wrap { trim: false })
+            .scroll((offset, 0))
+    }
+
+    let (text, title, offset) = if thread.is_some() {
+        let t = thread.unwrap();
+        let comment = t
             .comments
             .get(model.data.selected_comment as usize)
             .unwrap();
-        let text = if model.overview.len() == 0 {
-            vec![]
-        } else {
-            comment.get_lines()
-        };
-
-        let parag = Paragraph::new(text)
-            .block(
-                Block::new()
-                    .title(thread.unwrap().title.clone())
-                    .borders(Borders::ALL)
-                    .style(Style::default().fg(Color::Red)),
-            )
-            .style(Style::new().white())
-            .alignment(Alignment::Left)
-            .wrap(Wrap { trim: false })
-            .scroll((model.viewer_scroll, 0));
-        frame.render_widget(parag, area);
+        (comment.get_lines(), t.title.clone(), model.viewer_scroll)
     } else {
-        let parag = Paragraph::new("")
-            .block(
-                Block::new()
-                    .title("")
-                    .borders(Borders::ALL)
-                    .style(Style::default().fg(Color::Red)),
-            )
-            .style(Style::new().white())
-            .alignment(Alignment::Left)
-            .wrap(Wrap { trim: false })
-            .scroll((model.viewer_scroll, 0));
-        frame.render_widget(parag, area);
-    }
+        (vec![], "".to_string(), 0)
+    };
+
+    let parag = generate_paragraph(text, title, offset);
+    frame.render_widget(parag, area);
 }
 
-// TODO Rewrite
 fn render_comment_list(thread: Option<&ThreadData>, model: &Model, frame: &mut Frame, area: Rect) {
     let rows = if let Some(t) = thread {
         t.comments
@@ -104,7 +92,7 @@ fn render_comment_list(thread: Option<&ThreadData>, model: &Model, frame: &mut F
         .highlight_symbol(">>");
 
     let mut state = TableState::default();
-    let s = if let Some(_) = thread {
+    let s = if thread.is_some() {
         Some(model.data.selected_comment.into())
     } else {
         None
