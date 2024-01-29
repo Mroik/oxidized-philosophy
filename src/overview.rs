@@ -72,8 +72,8 @@ impl<'de> Visitor<'de> for DiscussionVisitor {
         };
         let mut counter = 0;
 
-        while let Some(key) = map.next_key::<Option<String>>()? {
-            match key.as_ref().unwrap().as_str() {
+        while let Some(key) = map.next_key::<Option<&str>>()? {
+            match key.unwrap() {
                 "a" => data.author = map.next_value::<XMLAuthor>()?,
                 "div" if counter == 0 => {
                     data.replies = map.next_value::<XMLReplies>()?;

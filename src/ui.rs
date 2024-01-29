@@ -41,7 +41,7 @@ pub fn view(model: &Model, frame: &mut Frame) {
 }
 
 fn render_viwer(thread: Option<&ThreadData>, model: &Model, frame: &mut Frame, area: Rect) {
-    fn generate_paragraph(text: Vec<Line>, title: String, offset: u16) -> Paragraph {
+    fn generate_paragraph<'a>(text: Vec<Line<'a>>, title: &'a str, offset: u16) -> Paragraph<'a> {
         Paragraph::new(text)
             .block(
                 Block::new()
@@ -61,9 +61,9 @@ fn render_viwer(thread: Option<&ThreadData>, model: &Model, frame: &mut Frame, a
             .comments
             .get(model.data.selected_comment as usize)
             .unwrap();
-        (comment.get_lines(), t.title.clone(), model.viewer_scroll)
+        (comment.get_lines(), t.title.as_str(), model.viewer_scroll)
     } else {
-        (vec![], "".to_string(), 0)
+        (vec![], "", 0)
     };
 
     let parag = generate_paragraph(text, title, offset);
@@ -102,7 +102,7 @@ fn render_comment_list(thread: Option<&ThreadData>, model: &Model, frame: &mut F
 }
 
 fn render_overview(model: &Model, frame: &mut Frame, area: Rect) {
-    let threads_list = List::new(model.overview.iter().map(|item| item.title.clone()))
+    let threads_list = List::new(model.overview.iter().map(|item| item.title.as_str()))
         .block(
             Block::default()
                 .title("Overview")

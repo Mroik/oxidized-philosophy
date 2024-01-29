@@ -274,9 +274,9 @@ pub struct ChoiceAnchor {
 }
 impl Display for ChoiceAnchor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let text = match self.text.clone() {
+        let text = match self.text.as_ref() {
             Some(s) => s,
-            None => String::new(),
+            None => "",
         };
         write!(f, "{}", text)
     }
