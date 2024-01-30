@@ -62,7 +62,9 @@ impl Model {
         if let Some(n) = self.overview.iter().position(|x| x == over) {
             self.overview.remove(n);
             self.data.data.remove(n);
-            self.selected_thread -= 1;
+            if self.selected_thread > 0 {
+                self.selected_thread -= 1;
+            }
         }
     }
 
