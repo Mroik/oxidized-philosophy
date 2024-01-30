@@ -1,4 +1,4 @@
-use std::io::Stdout;
+use std::{error::Error, io::Stdout};
 
 use ratatui::{
     backend::CrosstermBackend,
@@ -122,12 +122,16 @@ fn render_overview(model: &Model, frame: &mut Frame, area: Rect) {
     frame.render_stateful_widget(threads_list, area, &mut state);
 }
 
-pub fn print_info(terminal: &mut Terminal<CrosstermBackend<Stdout>>, text: &str) {
-    let _ = terminal.draw(|frame| {
+pub fn print_info(
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    text: &str,
+) -> Result<(), Box<dyn Error>> {
+    terminal.draw(|frame| {
         let (_, _, _, info_area) = generate_layout(frame);
         let parag = Paragraph::new(text)
             .style(Style::default().yellow())
             .alignment(Alignment::Left);
         frame.render_widget(parag, info_area);
-    });
+    })?;
+    return Ok(());
 }

@@ -184,7 +184,6 @@ impl Model {
 
     pub(crate) fn new(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Self {
         let mut m = Model {
-            http_client: Client::new(),
             ..Default::default()
         };
         m.overview = get_threads(&m.http_client, 1, terminal, false).unwrap();
@@ -254,7 +253,7 @@ pub fn update(
     let mult = model.get_multiplier();
 
     for _ in 0..mult {
-        let _ = match action {
+        match action {
             Action::NextThread => model.next_thread(terminal, tab),
             Action::PrevThread => model.prev_thread(),
             Action::NextComment => model.next_comment(terminal),
@@ -263,7 +262,7 @@ pub fn update(
             Action::ScrollUp => model.scroll_up(),
             Action::CleanComments => model.clean_comments(terminal),
             _ => unreachable!(),
-        };
+        }?;
     }
     return Ok(());
 }

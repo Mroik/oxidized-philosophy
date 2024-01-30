@@ -18,7 +18,7 @@ pub fn get_threads(
 ) -> Result<Vec<ThreadOverview>, Box<dyn Error>> {
     let url = format!("https://thephilosophyforum.com/discussions/p{}", page);
     if draw {
-        print_info(terminal, "Fetching threads overviews...");
+        print_info(terminal, "Fetching threads overviews...")?;
     }
     let body = client.get(url).send()?.text()?;
     let mut reader = Reader::from_str(body.as_str());
@@ -31,30 +31,27 @@ pub fn get_threads(
             Err(e) => return Err(Box::new(e)),
             Ok(Event::Eof) => break,
             Ok(Event::Start(tag)) => {
-                match tag.attributes().map(|a| a.unwrap().value).find(|att| {
+                if let Some(_) = tag.attributes().map(|a| a.unwrap().value).find(|att| {
                     let blob = att.as_ref();
                     let attribute = std::str::from_utf8(blob).unwrap();
                     attribute == "Item"
                 }) {
-                    None => (),
-                    Some(_) => {
-                        let vv = reader.read_text(tag.to_end().name())?;
-                        let mut thread_text = String::new();
-                        thread_text.push_str("<html>");
-                        thread_text.push_str(vv.as_ref());
-                        thread_text.push_str("</html>");
+                    let vv = reader.read_text(tag.to_end().name())?;
+                    let mut thread_text = String::new();
+                    thread_text.push_str("<html>");
+                    thread_text.push_str(vv.as_ref());
+                    thread_text.push_str("</html>");
 
-                        let mut url = String::from("https://thephilosophyforum.com/");
-                        let discussion: XMLDiscussion = from_str(&thread_text).unwrap();
-                        url.push_str(discussion.title.value.href.as_str());
+                    let mut url = String::from("https://thephilosophyforum.com/");
+                    let discussion: XMLDiscussion = from_str(&thread_text).unwrap();
+                    url.push_str(discussion.title.value.href.as_str());
 
-                        result.push(ThreadOverview {
-                            title: discussion.title.value.title,
-                            url,
-                            author: discussion.author.name,
-                            replies: discussion.replies.replies,
-                        });
-                    }
+                    result.push(ThreadOverview {
+                        title: discussion.title.value.title,
+                        url,
+                        author: discussion.author.name,
+                        replies: discussion.replies.replies,
+                    });
                 }
             }
             _ => (),
@@ -73,7 +70,7 @@ pub fn get_thread(
     let mut url = thread.url.clone();
     url.push_str(format!("/p{}", page).as_str());
     if draw {
-        print_info(terminal, "Fetching thread data...");
+        print_info(terminal, "Fetching thread data...")?;
     }
     let body = client.get(url).send()?.text()?;
     let mut result = ThreadData {
@@ -88,29 +85,26 @@ pub fn get_thread(
             Err(e) => return Err(Box::new(e)),
             Ok(Event::Eof) => break,
             Ok(Event::Start(tag)) => {
-                match tag.attributes().map(|a| a.unwrap().value).find(|att| {
+                if let Some(_) = tag.attributes().map(|a| a.unwrap().value).find(|att| {
                     let blob = att.as_ref();
                     let attribute = std::str::from_utf8(blob).unwrap();
                     attribute == "Comment"
                 }) {
-                    None => (),
-                    Some(_) => {
-                        let t_data = reader
-                            .read_text(tag.to_end().name())?
-                            .replace("&mdash;", "-");
-                        let mut comment_text = String::new();
-                        comment_text.push_str("<html>");
-                        comment_text.push_str(t_data.as_ref());
-                        comment_text.push_str("</html>");
+                    let t_data = reader
+                        .read_text(tag.to_end().name())?
+                        .replace("&mdash;", "-");
+                    let mut comment_text = String::new();
+                    comment_text.push_str("<html>");
+                    comment_text.push_str(t_data.as_ref());
+                    comment_text.push_str("</html>");
 
-                        let comment: XMLComment = from_str(&comment_text)?;
-                        let ris = ThreadComment {
-                            author: comment.author.name.value,
-                            text: comment.text.text,
-                            date: comment.date.value.value.value.value,
-                        };
-                        result.comments.push(ris);
-                    }
+                    let comment: XMLComment = from_str(&comment_text)?;
+                    let ris = ThreadComment {
+                        author: comment.author.name.value,
+                        text: comment.text.text,
+                        date: comment.date.value.value.value.value,
+                    };
+                    result.comments.push(ris);
                 }
             }
             _ => (),
