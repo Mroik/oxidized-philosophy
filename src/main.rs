@@ -77,7 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                      */
                     KeyCode::Char('b') => {
                         if tab == TabState::Home {
-                            let mm = model.get(0).unwrap();
+                            let mm = model.first().unwrap();
                             let over = mm
                                 .overview
                                 .get(mm.selected_thread as usize)

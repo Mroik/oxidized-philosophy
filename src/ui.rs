@@ -29,7 +29,7 @@ fn generate_layout(frame: &Frame) -> (Rect, Rect, Rect, Rect) {
 
 pub fn view(model: &Model, frame: &mut Frame) {
     let (overview, comments, viewer, _) = generate_layout(frame);
-    let thread = if model.overview.len() == 0 {
+    let thread = if model.overview.is_empty() {
         None
     } else {
         Some(model.data.data.get(model.selected_thread as usize).unwrap())
@@ -113,7 +113,7 @@ fn render_overview(model: &Model, frame: &mut Frame, area: Rect) {
         .highlight_style(Style::default().bg(Color::LightBlue))
         .highlight_symbol(">>");
     let mut state = ListState::default();
-    let s = if model.overview.len() == 0 {
+    let s = if model.overview.is_empty() {
         None
     } else {
         Some(model.selected_thread.into())

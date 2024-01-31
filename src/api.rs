@@ -31,7 +31,7 @@ pub fn get_threads(
             Err(e) => return Err(Box::new(e)),
             Ok(Event::Eof) => break,
             Ok(Event::Start(tag)) => {
-                if let Some(_) = tag.attributes().map(|a| a.unwrap().value).find(|att| {
+                if tag.attributes().map(|a| a.unwrap().value).any(|att| {
                     let blob = att.as_ref();
                     let attribute = std::str::from_utf8(blob).unwrap();
                     attribute == "Item"
@@ -85,7 +85,7 @@ pub fn get_thread(
             Err(e) => return Err(Box::new(e)),
             Ok(Event::Eof) => break,
             Ok(Event::Start(tag)) => {
-                if let Some(_) = tag.attributes().map(|a| a.unwrap().value).find(|att| {
+                if tag.attributes().map(|a| a.unwrap().value).any(|att| {
                     let blob = att.as_ref();
                     let attribute = std::str::from_utf8(blob).unwrap();
                     attribute == "Comment"
