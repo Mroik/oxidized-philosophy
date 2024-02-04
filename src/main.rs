@@ -124,6 +124,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     disable_raw_mode()?;
 
     print!("Saving bookmarks... ");
+    stdout().flush()?;
     let file = File::create("/home/mroik/.cache/oxi-phil/bookmarks.txt")?;
     let data = serde_cbor::to_vec(&model[1])?;
     let mut compressor = XzEncoder::new(file, 9);
