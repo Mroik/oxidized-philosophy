@@ -13,6 +13,7 @@ use crossterm::{
 use model::{update, Action, Model};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use ui::view;
+use users::get_current_username;
 use xz::{read::XzDecoder, write::XzEncoder};
 
 use crate::model::TabState;
@@ -29,8 +30,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     terminal.clear()?;
 
-    // TODO Remove hard-coded path
-    let reader = fs::File::open("/home/mroik/.cache/oxi-phil/bookmarks.txt");
+    let user = get_current_username().unwrap().into_string().unwrap();
+    let save_path = format!("/home/{}/.cache/oxi-phil/bookmarks.txt", &user);
+    let reader = fs::File::open(&save_path);
     let data = if reader.is_ok() {
         let buf = XzDecoder::new(reader?);
         serde_cbor::from_reader(buf)?
@@ -125,7 +127,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     print!("Saving bookmarks... ");
     stdout().flush()?;
-    let file = File::create("/home/mroik/.cache/oxi-phil/bookmarks.txt")?;
+    let file = File::create(&save_path)?;
     let data = serde_cbor::to_vec(&model[1])?;
     let mut compressor = XzEncoder::new(file, 9);
     compressor.write_all(&data)?;
