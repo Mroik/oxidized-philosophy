@@ -13,7 +13,7 @@ use crossterm::{
 use model::{update, Action, Model};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use ui::view;
-use users::get_current_username;
+use uzers::get_current_username;
 use xz::{read::XzDecoder, write::XzEncoder};
 
 use crate::model::TabState;
